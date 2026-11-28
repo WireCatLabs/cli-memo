@@ -6,7 +6,7 @@ import { jsonFields } from "./json-fields.js"
 const programWith = (answer: unknown) => {
   const raw = captureStreams()
   const fields = jsonFields(raw)
-  const program = new Command("memo").exitOverride()
+  const program = new Command("wcat").exitOverride()
   program
     .command("show")
     .option("--json")

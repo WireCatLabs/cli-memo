@@ -19,7 +19,7 @@ const base = ["projects", "evidence", "HBX", "--source", "telegram:cutoff-fixtur
 afterEach(() => vi.useRealTimers())
 
 const setup = async () => {
-  const env = { ...process.env, MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "memo-cutoff-")), "s.db") }
+  const env = { ...process.env, MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "wcat-cutoff-")), "s.db") }
   const store = await openStore({ env })
   try {
     await store.knowledge.addProject({ name: "Harbour Boundary", key: "HBX" })

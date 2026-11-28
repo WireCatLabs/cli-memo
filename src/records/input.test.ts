@@ -153,7 +153,7 @@ it("reads a vCard's national numbers in --region, in any case, so they match the
   expect(apart?.entity).not.toBe(known?.entity)
 })
 
-it("refuses --region for an envelope and a country memo has no phone plan for", async () => {
+it("refuses --region for an envelope and a country wcat has no phone plan for", async () => {
   const f = await businessStore("records-region-refused")
   const envelope = `${JSON.stringify(header)}\n${JSON.stringify(payment(1, f.client))}\n`
   await expect(

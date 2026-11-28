@@ -1,5 +1,4 @@
-import { join } from "node:path"
-import { CliError, type Streams } from "@wirecat/cli-base"
+import type { Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
 import type { QueryRegistry } from "@wirecat/cli-base/query"
 import type { NextStep } from "@wirecat/cli-base/standards"
@@ -8,75 +7,9 @@ import { PERSON_KINDS, type PersonKind } from "@wirecat/cli-core/store"
 import { type ListedPerson, PEOPLE_SORTS, type PeopleSort } from "@wirecat/cli-core/store/areas"
 import type { Command } from "commander"
 import { answers, itemAnswer, listAnswer, wholeList, withStore } from "../answer.js"
-import { deciderOf, fromAppOption } from "../author.js"
-import { boundFolders, folderOfFile } from "../notes/bound.js"
-import { folderNotes } from "../notes/import.js"
 import { oneOf, positive } from "../options.js"
 import { groupOf, keepInGroup } from "../store/group.js"
 import { identitiesCommands } from "./identities-command.js"
-import { identityOf } from "./identity.js"
-import { importNotesMap } from "./notes-map.js"
-
-/** Who is who is linked in messaging (`tg contacts link`); the note about a person is an `about` link. */
-export const noteCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
-  const notes = program.commands.find((command) => command.name() === "notes") ?? program.command("notes")
-  const links = notes.command("links").description("imported note files linked to the person behind an identity")
-  const { print } = answers(program, streams, env)
-  for (const operation of ["show", "add", "clear"] as const) {
-    const command = annotate(links.command(operation), {
-      effects: operation === "show" ? LOCAL_READ : LOCAL_WRITE,
-      output: { entity: "person_note_links" },
-    })
-      .description(
-        {
-          show: "show the note files about a person",
-          add: "link an imported note file to a person",
-          clear: "remove the owner's note-file links for a person",
-        }[operation],
-      )
-      .argument("<identity>", "<messenger>:<name or id> of an identity of the person")
-      .option("--json", "print the standard JSON answer")
-    if (operation === "add") command.argument("<path>", "the imported note file in a configured folder")
-    if (operation !== "show") fromAppOption(command)
-    command.action(async (identity: string, value: unknown) => {
-      const by = await deciderOf(command, env, { question: `change ${identity}'s note files as you, the owner?` })
-      const result = await withStore(env, async (store) => {
-        const folders = await boundFolders(store, env, { strict: false })
-        await importNotesMap(store, env, folders)
-        const person = await store.people.personOf(await identityOf(store, identity))
-        if (person === undefined)
-          throw new CliError("not_found", `the store has no person for "${identity}"`, { reason: "person.not-found" })
-        const to = `person:${person.uid}`
-        const files = async () => {
-          const found = []
-          for (const link of await store.notes.links({ to })) {
-            if (link.kind !== "about" || link.origin !== "owner") continue
-            const note = await store.notes.resolveNote(link.from)
-            if (note?.source === "file" && note.deletedAt === null) found.push({ link, note })
-          }
-          return found
-        }
-        if (operation === "clear") for (const { link } of await files()) await store.notes.removeLink(link.id, by)
-        else if (operation === "add") {
-          const path = String(value)
-          const { folder, path: inside } = folderOfFile(folders, path)
-          const note = (await folderNotes(store, folder.id)).find((candidate) => candidate.path === inside)
-          if (!note)
-            throw new CliError("not_found", `${path} is not imported yet — memo sync --only notes`, {
-              reason: "note.not-imported",
-            })
-          await store.notes.addLink({ from: note.ref, to, kind: "about", origin: "owner", by })
-        }
-        const paths = (await files()).map(({ note }) => {
-          const folder = folders.find((candidate) => candidate.id === note.folderId)
-          return folder ? join(folder.path, note.path as string) : note.ref
-        })
-        return { person: to, name: person.name ?? person.uid, files: paths }
-      })
-      print(command.opts().json, itemAnswer(result), `${result.name}: ${result.files.join(", ") || "no note"}`)
-    })
-  }
-}
 
 interface PeopleListOptions {
   sort: PeopleSort
@@ -103,7 +36,7 @@ const personRow = (person: ListedPerson) => ({
   ties: person.ties,
 })
 
-// Keyed by name rather than PersonKind: a cli-core that adds a kind must not break memo's build.
+// Keyed by name rather than PersonKind: a cli-core that adds a kind must not break wcat's build.
 const KIND_WORDS: Record<string, [string, string]> = {
   person: ["person", "people"],
   organization: ["organization", "organizations"],
@@ -128,7 +61,7 @@ const otherKinds = (shown: PersonKind | "all", counts: Record<PersonKind, number
       step: "people.kinds",
       command: "people list",
       args: { query },
-      line: `memo people list '${query}'`,
+      line: `wcat people list '${query}'`,
       why: others
         .map((kind) => {
           const [one, many] = KIND_WORDS[kind] ?? [kind, kind]
@@ -144,7 +77,7 @@ export const peopleCommand = (program: Command, streams: Streams, env: NodeJS.Pr
   const { print } = answers(program, streams, env)
   const people = program
     .command("people")
-    .description("the people memo knows: who is who across sources, and whom to assign tasks to")
+    .description("the people wcat knows: who is who across sources, and whom to assign tasks to")
   annotate(people.command("add"), { effects: LOCAL_WRITE, literal_after_dashes: true })
     .description("add a person by name, before any message names them")
     .argument("<name...>", "what to call them")

@@ -6,7 +6,7 @@ import { digestSchedule } from "./tasks.js"
 /** The proposal kinds whose batches carry task findings: mail, meetings, and an agent's cited findings. */
 export const TASK_BATCH_KINDS = ["mail_findings", "meeting_findings", "findings"] as const
 
-export const REVIEW_TASKS = `memo review list kind:${TASK_BATCH_KINDS.join(",")}`
+export const REVIEW_TASKS = `wcat review list kind:${TASK_BATCH_KINDS.join(",")}`
 
 const MOST_PAGES = 20
 
@@ -33,12 +33,12 @@ export const TASK_AGENTS = [
   {
     skill: "mail-triage",
     reads: "mail",
-    add: "memo schedule agent mail-triage claude 'Run memo skill show mail-triage and follow it.' --every 5m --on-new-mail mail-triage --max-cost 1",
+    add: "wcat schedule agent mail-triage claude 'Run wcat skill show mail-triage and follow it.' --every 5m --on-new-mail mail-triage --max-cost 1",
   },
   {
     skill: "task-triage",
     reads: "messengers",
-    add: "memo schedule agent task-triage claude 'Run memo skill show task-triage and follow it.' --at 08:00 --at 13:00 --at 18:00 --max-cost 1",
+    add: "wcat schedule agent task-triage claude 'Run wcat skill show task-triage and follow it.' --at 08:00 --at 13:00 --at 18:00 --max-cost 1",
   },
 ] as const
 
@@ -50,7 +50,7 @@ const scheduleOf = (env: NodeJS.ProcessEnv, skill: string): Scheduled | undefine
   const all = schedulesOf(digestSchedule(env).state)
   return (
     all.find((one) => one.name === skill) ??
-    all.find((one) => one.kind === "agent" && one.argv.join(" ").includes(`memo skill show ${skill}`))
+    all.find((one) => one.kind === "agent" && one.argv.join(" ").includes(`wcat skill show ${skill}`))
   )
 }
 
@@ -64,7 +64,7 @@ export const taskAgentNotes = (env: NodeJS.ProcessEnv, wanted: readonly TaskAgen
     if (!schedule) return [`# no agent proposes tasks from ${agent.reads}; add one: ${agent.add}`]
     const name = schedule.name
     if (schedule.paused)
-      return [`# ${name} is paused, so ${agent.reads} propose no tasks: memo schedule resume ${name}`]
+      return [`# ${name} is paused, so ${agent.reads} propose no tasks: wcat schedule resume ${name}`]
     const { last } = schedule
     const skipped = last?.skipped
     if (skipped && STOPPED.has(skipped.reason ?? "") && (last === undefined || skipped.at >= last.at))
@@ -73,6 +73,6 @@ export const taskAgentNotes = (env: NodeJS.ProcessEnv, wanted: readonly TaskAgen
           (skipped.reason === "agent.refused" ? `; save it again: ${agent.add}` : ""),
       ]
     if (last && last.exitCode !== 0)
-      return [`# ${name} fails since ${last.failingSince ?? last.at}: memo schedule list`]
+      return [`# ${name} fails since ${last.failingSince ?? last.at}: wcat schedule list`]
     return []
   })

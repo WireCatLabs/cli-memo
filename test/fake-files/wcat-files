@@ -1,0 +1,7 @@
+#!/usr/bin/env node
+// Stands in for the files CLI in tests: prints WCAT_FAKE_FILES as its answer, and logs its arguments.
+import { appendFileSync } from "node:fs"
+
+if (process.env.WCAT_FAKE_FILES_LOG) appendFileSync(process.env.WCAT_FAKE_FILES_LOG, `${process.argv.slice(2).join(" ")}\n`)
+const item = process.env.WCAT_FAKE_FILES ?? JSON.stringify({ notes: [], failed: [] })
+process.stdout.write(JSON.stringify({ item: JSON.parse(item), meta: {} }))

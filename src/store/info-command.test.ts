@@ -7,7 +7,7 @@ import { expect, it } from "vitest"
 import { createProgram } from "../program.js"
 
 const environment = () => {
-  const directory = mkdtempSync(join(tmpdir(), "memo-store-info-"))
+  const directory = mkdtempSync(join(tmpdir(), "wcat-store-info-"))
   return { ...process.env, MESSAGING_STORE: join(directory, "wirecat.db") }
 }
 
@@ -23,10 +23,10 @@ it("describes the shared store without creating it", async () => {
   expect(existsSync(String(env.MESSAGING_STORE))).toBe(false)
 })
 
-it("names memo among the tools that used the store", async () => {
+it("names wcat among the tools that used the store", async () => {
   const env = environment()
-  await (await openStore({ path: String(env.MESSAGING_STORE), env, command: "memo", version: "1.0.0" })).close()
+  await (await openStore({ path: String(env.MESSAGING_STORE), env, command: "wcat", version: "1.0.0" })).close()
   const answer = await storeInfo(env)
   expect(answer.schema).toMatchObject({ reason: "current", upgrade: null })
-  expect(answer.clients).toEqual([expect.objectContaining({ command: "memo", version: "1.0.0" })])
+  expect(answer.clients).toEqual([expect.objectContaining({ command: "wcat", version: "1.0.0" })])
 })

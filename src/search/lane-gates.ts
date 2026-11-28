@@ -31,7 +31,7 @@ export const LANE_GATES: readonly LaneGate[] = [
   },
   { lane: "crm", key: "crm.list", kinds: { deal: "deals.list", lead: "leads.list" } },
   { lane: "events", key: "events.list", kinds: { event: "events.list" } },
-  // memo has no tracker commands to key each kind by, and its own projects.list is about memo's projects: one key.
+  // wcat has no tracker commands to key each kind by, and its own projects.list is about wcat's projects: one key.
   {
     lane: "tracker",
     key: "tracker.list",
@@ -39,7 +39,7 @@ export const LANE_GATES: readonly LaneGate[] = [
   },
 ]
 
-/** The lane keys no command path carries, which memo still accepts from `--permission` and the config file. */
+/** The lane keys no command path carries, which wcat still accepts from `--permission` and the config file. */
 export const LANE_KEYS = LANE_GATES.map(({ key }) => key)
 
 type Skipped = SearchAllFound["skipped"][number]
@@ -56,11 +56,11 @@ export interface LanesAllowed {
 const leftOut = (lane: SearchedResource, what: string, key: string): Skipped => ({
   code: "permission_error",
   resource: lane,
-  reason: `${what} left out: memo's MCP server denies ${key}`,
+  reason: `${what} left out: wcat's MCP server denies ${key}`,
 })
 
 /**
- * What `search all` may read and show. The MCP server's levels gate every lane; `denied` adds the CRM kinds memo's own
+ * What `search all` may read and show. The MCP server's levels gate every lane; `denied` adds the CRM kinds wcat's own
  * permissions deny for a run that is not the owner at a terminal, as the contexts leave them out (SEC-151).
  */
 export const lanesFor = (

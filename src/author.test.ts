@@ -5,10 +5,11 @@ import { captureStreams } from "@wirecat/cli-base"
 import { openStore } from "@wirecat/cli-core/store"
 import { expect, it } from "vitest"
 import { answerOf } from "../test/answer.js"
+import { addNote } from "../test/notes.js"
 import { createProgram } from "./program.js"
 
 const setUp = async (agent: Record<string, string>) => {
-  const env = { ...process.env, ...agent, MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "memo-author-")), "s.db") }
+  const env = { ...process.env, ...agent, MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "wcat-author-")), "s.db") }
   const store = await openStore({ env })
   await store.accounts.saveAccount({ provider: "telegram", account: "1" }, { name: null })
   const organization = await store.knowledge.addOrganization({ kind: "company", name: "Synthetic Studio" })
@@ -20,7 +21,7 @@ const setUp = async (agent: Record<string, string>) => {
       .parseAsync([...args, "--json"], { from: "user" })
     return answerOf(streams.stdout.join(""))
   }
-  const note = await run("notes", "add", "Synthetic note")
+  const note = await addNote(env, "Synthetic note")
   const project = await run("projects", "add", "Synthetic Harbour", "--key", "SYH")
   const writes = (...by: string[]) =>
     Promise.all([

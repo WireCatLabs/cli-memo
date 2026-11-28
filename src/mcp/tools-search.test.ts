@@ -4,7 +4,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest"
 import { createProgram } from "../program.js"
 import { createMemoServer } from "./server.js"
 
-// The phrases the CRM relationships scenario (cli-testing performance/crm/relationships) asks memo_tools_search: a
+// The phrases the CRM relationships scenario (cli-testing performance/crm/relationships) asks wcat_tools_search: a
 // short one an agent types as a command, and a task in the agent's own words.
 const PHRASES: [string, string, string][] = [
   ["organizations context", "organization context", "a client company's people, deals and money"],
@@ -22,7 +22,7 @@ const PHRASES: [string, string, string][] = [
   ["groups move", "move account groups", "move an account to another group"],
 ]
 
-describe("memo_tools_search finds a command from a task phrase", () => {
+describe("wcat_tools_search finds a command from a task phrase", () => {
   let client: Client
   beforeAll(async () => {
     const [server, transport] = InMemoryTransport.createLinkedPair()
@@ -33,7 +33,7 @@ describe("memo_tools_search finds a command from a task phrase", () => {
   afterAll(() => client.close())
 
   const found = async (query: string) => {
-    const answer = await client.callTool({ name: "memo_tools_search", arguments: { query } })
+    const answer = await client.callTool({ name: "wcat_tools_search", arguments: { query } })
     return (answer.structuredContent as { items: { command: string }[] }).items.map(({ command }) => command)
   }
 

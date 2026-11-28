@@ -1,10 +1,10 @@
 {
   "wcat_manifest": 2,
-  "name": "memo",
-  "description": "Context about people across messengers, notes and mail",
-  "docs_url": "https://wirecat.dev/en/docs/memo",
-  "package": "@wirecat/cli-memo",
-  "bin": "wcat-memo",
+  "name": "wirecat",
+  "description": "Local context for AI agents across messengers, mail and notes",
+  "docs_url": "https://wirecat.dev/en/docs/wcat",
+  "package": "@wirecat/wirecat",
+  "bin": "wcat-wirecat",
   "commands": [
     {
       "path": [
@@ -28,230 +28,6 @@
         "local": "read"
       },
       "permission": "show"
-    },
-    {
-      "path": [
-        "notes",
-        "show"
-      ],
-      "summary": "one note: its text, tags, what it links and what links it",
-      "effects": {
-        "remote": "none",
-        "local": "read"
-      },
-      "permission": "notes.show",
-      "entity": "note"
-    },
-    {
-      "path": [
-        "notes",
-        "list"
-      ],
-      "summary": "notes, newest first",
-      "effects": {
-        "remote": "none",
-        "local": "read"
-      },
-      "permission": "notes.list",
-      "entity": "note"
-    },
-    {
-      "path": [
-        "notes",
-        "add"
-      ],
-      "summary": "write a note of your own about messages, people, projects or other notes",
-      "effects": {
-        "remote": "none",
-        "local": "write"
-      },
-      "permission": "notes.add",
-      "entity": "note"
-    },
-    {
-      "path": [
-        "notes",
-        "edit"
-      ],
-      "summary": "change a note you wrote here; a file's note is edited in its file",
-      "effects": {
-        "remote": "none",
-        "local": "write"
-      },
-      "permission": "notes.edit",
-      "entity": "note"
-    },
-    {
-      "path": [
-        "notes",
-        "remove"
-      ],
-      "summary": "delete a note you wrote here; a file it was exported to stays",
-      "effects": {
-        "remote": "none",
-        "local": "write"
-      },
-      "permission": "notes.remove"
-    },
-    {
-      "path": [
-        "notes",
-        "export"
-      ],
-      "summary": "write the notes you wrote here as files, never overwriting one you edited",
-      "effects": {
-        "remote": "none",
-        "local": "write"
-      },
-      "permission": "notes.export"
-    },
-    {
-      "path": [
-        "notes",
-        "links",
-        "show"
-      ],
-      "summary": "show the note files about a person",
-      "effects": {
-        "remote": "none",
-        "local": "read"
-      },
-      "permission": "notes.links.show",
-      "entity": "person_note_links"
-    },
-    {
-      "path": [
-        "notes",
-        "links",
-        "add"
-      ],
-      "summary": "link an imported note file to a person",
-      "effects": {
-        "remote": "none",
-        "local": "write"
-      },
-      "permission": "notes.links.add",
-      "entity": "person_note_links"
-    },
-    {
-      "path": [
-        "notes",
-        "links",
-        "clear"
-      ],
-      "summary": "remove the owner's note-file links for a person",
-      "effects": {
-        "remote": "none",
-        "local": "write"
-      },
-      "permission": "notes.links.clear",
-      "entity": "person_note_links"
-    },
-    {
-      "path": [
-        "sources",
-        "add"
-      ],
-      "summary": "keep a file, a web page or pasted text as a document",
-      "effects": {
-        "remote": "read",
-        "local": "write"
-      },
-      "permission": "sources.add",
-      "entity": "added_source"
-    },
-    {
-      "path": [
-        "sources",
-        "preview"
-      ],
-      "summary": "read a web page as sources add would, and keep nothing",
-      "effects": {
-        "remote": "read",
-        "local": "read"
-      },
-      "permission": "sources.preview",
-      "entity": "source_preview"
-    },
-    {
-      "path": [
-        "sources",
-        "show"
-      ],
-      "summary": "one source: its text, what is kept, and what cites it",
-      "effects": {
-        "remote": "none",
-        "local": "read"
-      },
-      "permission": "sources.show",
-      "entity": "source_detail"
-    },
-    {
-      "path": [
-        "sources",
-        "mentions"
-      ],
-      "summary": "known people and organizations named in a source",
-      "effects": {
-        "remote": "none",
-        "local": "read"
-      },
-      "permission": "sources.mentions",
-      "entity": "source_mention"
-    },
-    {
-      "path": [
-        "sources",
-        "remove"
-      ],
-      "summary": "remove a source you added, and its kept copy",
-      "effects": {
-        "remote": "none",
-        "local": "write"
-      },
-      "permission": "sources.remove",
-      "entity": "source_removal"
-    },
-    {
-      "path": [
-        "sources",
-        "suggest"
-      ],
-      "summary": "have the chosen reader propose facts from a source, for you to confirm",
-      "effects": {
-        "remote": "read",
-        "local": "write"
-      },
-      "permission": "sources.suggest",
-      "entity": "source_suggestion"
-    },
-    {
-      "path": [
-        "sources",
-        "readers",
-        "list"
-      ],
-      "summary": "each reader: installed, signed in, and your pick",
-      "effects": {
-        "remote": "none",
-        "local": "read"
-      },
-      "permission": "sources.readers.list",
-      "entity": "source_reader"
-    },
-    {
-      "path": [
-        "sources",
-        "readers",
-        "set"
-      ],
-      "summary": "choose the reader that reads your sources",
-      "effects": {
-        "remote": "none",
-        "local": "write"
-      },
-      "permission": "sources.readers.set",
-      "entity": "source_reader_choice"
     },
     {
       "path": [
@@ -294,55 +70,6 @@
     },
     {
       "path": [
-        "folders",
-        "add"
-      ],
-      "summary": "give a folder of notes an id, or show the one it has",
-      "effects": {
-        "remote": "none",
-        "local": "write"
-      },
-      "permission": "folders.add"
-    },
-    {
-      "path": [
-        "folders",
-        "update"
-      ],
-      "summary": "bind a folder id from another computer to the folder's path on this one",
-      "effects": {
-        "remote": "none",
-        "local": "write"
-      },
-      "permission": "folders.update"
-    },
-    {
-      "path": [
-        "folders",
-        "remove"
-      ],
-      "summary": "stop reading a notes folder here; its notes stay unless --allow-delete",
-      "effects": {
-        "remote": "none",
-        "local": "write"
-      },
-      "permission": "folders.remove"
-    },
-    {
-      "path": [
-        "folders",
-        "list"
-      ],
-      "summary": "folders of notes on this computer, and those the store knows from another",
-      "effects": {
-        "remote": "none",
-        "local": "read"
-      },
-      "permission": "folders.list",
-      "entity": "notes_folder"
-    },
-    {
-      "path": [
         "messages",
         "show"
       ],
@@ -378,75 +105,6 @@
       },
       "permission": "messages.reset",
       "entity": "mail_mark_reset"
-    },
-    {
-      "path": [
-        "mail",
-        "findings",
-        "add"
-      ],
-      "summary": "stage one mailbox's findings; the owner confirms them",
-      "effects": {
-        "remote": "none",
-        "local": "write"
-      },
-      "permission": "mail.findings.add",
-      "entity": "mail_findings"
-    },
-    {
-      "path": [
-        "mail",
-        "findings",
-        "show"
-      ],
-      "summary": "one findings batch with its evidence and decisions",
-      "effects": {
-        "remote": "none",
-        "local": "read"
-      },
-      "permission": "mail.findings.show",
-      "entity": "mail_findings"
-    },
-    {
-      "path": [
-        "mail",
-        "findings",
-        "list"
-      ],
-      "summary": "mail findings batches, newest first; status:proposed is what waits for the owner",
-      "effects": {
-        "remote": "none",
-        "local": "read"
-      },
-      "permission": "mail.findings.list",
-      "entity": "mail_findings"
-    },
-    {
-      "path": [
-        "mail",
-        "subscriptions",
-        "list"
-      ],
-      "summary": "broadcast mail by list, newest first",
-      "effects": {
-        "remote": "none",
-        "local": "read"
-      },
-      "permission": "mail.subscriptions.list",
-      "entity": "mail_subscription"
-    },
-    {
-      "path": [
-        "mail",
-        "review"
-      ],
-      "summary": "threads with new mail, mail you owe an answer, mail waiting for one",
-      "effects": {
-        "remote": "none",
-        "local": "read"
-      },
-      "permission": "mail.review",
-      "entity": "message"
     },
     {
       "path": [
@@ -576,7 +234,7 @@
         "people",
         "delete"
       ],
-      "summary": "delete a person and what memo knows of them alone; only you",
+      "summary": "delete a person and what wcat knows of them alone; only you",
       "effects": {
         "remote": "none",
         "local": "write"
@@ -589,7 +247,7 @@
         "people",
         "scan"
       ],
-      "summary": "match people across sources now; memo sync does it too",
+      "summary": "match people across sources now; wcat sync does it too",
       "effects": {
         "remote": "none",
         "local": "write"
@@ -786,7 +444,7 @@
         "comments",
         "add"
       ],
-      "summary": "comment on a task, in your name or the agent's that runs memo",
+      "summary": "comment on a task, in your name or the agent's that runs wcat",
       "effects": {
         "remote": "none",
         "local": "write"
@@ -991,7 +649,7 @@
         "organizations",
         "delete"
       ],
-      "summary": "delete an organization and what memo knows of it alone; only you",
+      "summary": "delete an organization and what wcat knows of it alone; only you",
       "effects": {
         "remote": "none",
         "local": "write"
@@ -2839,18 +2497,6 @@
     },
     {
       "path": [
-        "import"
-      ],
-      "summary": "bring a folder of documents or a records file into memo's search",
-      "effects": {
-        "remote": "none",
-        "local": "write"
-      },
-      "permission": "import",
-      "entity": "import_receipt"
-    },
-    {
-      "path": [
         "meetings",
         "actions",
         "add"
@@ -3120,6 +2766,75 @@
     },
     {
       "path": [
+        "review",
+        "findings",
+        "add"
+      ],
+      "summary": "stage one mailbox's findings; the owner confirms them",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "review.findings.add",
+      "entity": "mail_findings"
+    },
+    {
+      "path": [
+        "review",
+        "findings",
+        "show"
+      ],
+      "summary": "one findings batch with its evidence and decisions",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "review.findings.show",
+      "entity": "mail_findings"
+    },
+    {
+      "path": [
+        "review",
+        "findings",
+        "list"
+      ],
+      "summary": "review findings batches, newest first; status:proposed is what waits for the owner",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "review.findings.list",
+      "entity": "mail_findings"
+    },
+    {
+      "path": [
+        "review",
+        "mail"
+      ],
+      "summary": "threads with new mail, mail you owe an answer, mail waiting for one",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "review.mail",
+      "entity": "message"
+    },
+    {
+      "path": [
+        "review",
+        "subscriptions",
+        "list"
+      ],
+      "summary": "broadcast mail by list, newest first",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "review.subscriptions.list",
+      "entity": "mail_subscription"
+    },
+    {
+      "path": [
         "agents",
         "list"
       ],
@@ -3136,7 +2851,7 @@
         "mcp",
         "serve"
       ],
-      "summary": "serve memo's commands to an AI agent",
+      "summary": "serve wcat's commands to an AI agent",
       "effects": {
         "remote": "none",
         "local": "write"
@@ -3740,7 +3455,7 @@
       "path": [
         "sync"
       ],
-      "summary": "sync notes, make stored mail searchable by meaning, and match people",
+      "summary": "embed stored mail for search by meaning, match people, and sync notes through files",
       "effects": {
         "remote": "read",
         "local": "write"
@@ -3752,7 +3467,7 @@
         "store",
         "info"
       ],
-      "summary": "the shared store's format and size, and whether memo can read it",
+      "summary": "the shared store's format and size, and whether wcat can read it",
       "effects": {
         "remote": "none",
         "local": "read"
@@ -3941,7 +3656,7 @@
         "config",
         "unset"
       ],
-      "summary": "remove one setting from the config file, even one memo does not know",
+      "summary": "remove one setting from the config file, even one wcat does not know",
       "effects": {
         "remote": "none",
         "local": "write"
@@ -3989,7 +3704,7 @@
       "path": [
         "upgrade"
       ],
-      "summary": "upgrade memo with the package manager that installed it; --check only looks",
+      "summary": "upgrade wcat with the package manager that installed it; --check only looks",
       "effects": {
         "remote": "read",
         "local": "write"
@@ -4001,7 +3716,7 @@
         "schedule",
         "command"
       ],
-      "summary": "run memo <args…> on a timer — reads save what they read, so this is how the…",
+      "summary": "run wcat <args…> on a timer — reads save what they read, so this is how the…",
       "effects": {
         "remote": "none",
         "local": "write"
@@ -4366,38 +4081,9 @@
     }
   ],
   "entities": {
-    "note": {
-      "fields": [
-        "source",
-        "text"
-      ]
-    },
-    "source_reader": {
-      "fields": [
-        "id",
-        "available",
-        "chosen"
-      ]
-    },
     "document_entry": {
       "fields": [
         "source_modified_at"
-      ]
-    },
-    "mail_findings": {
-      "fields": [
-        "status"
-      ]
-    },
-    "mail_subscription": {
-      "fields": [
-        "type"
-      ]
-    },
-    "message": {
-      "fields": [
-        "date",
-        "bulk"
       ]
     },
     "task_person": {
@@ -4685,6 +4371,22 @@
         "status"
       ]
     },
+    "mail_findings": {
+      "fields": [
+        "status"
+      ]
+    },
+    "message": {
+      "fields": [
+        "date",
+        "bulk"
+      ]
+    },
+    "mail_subscription": {
+      "fields": [
+        "type"
+      ]
+    },
     "agent_action": {
       "fields": [
         "tool"
@@ -4786,10 +4488,10 @@
       "github.com",
       "*.githubusercontent.com"
     ],
-    "user_hosts": "the web pages you add as sources, and the address you set for a reader or an AI model"
+    "user_hosts": "the address you set for an AI model"
   },
   "desktop": {
-    "tagline": "Notes, people and memories in one place for your agent",
+    "tagline": "People, memories and context in one place for agents",
     "profiles": null,
     "doctor": [
       "doctor",
@@ -4890,7 +4592,7 @@
         "--json"
       ],
       "lastShape": "runs",
-      "what": "notes and mail",
+      "what": "mail and people",
       "note": null
     },
     "storeInfo": null,
@@ -4902,8 +4604,8 @@
     "storeResetPreview": null,
     "storeReset": null,
     "storage": {
-      "app": "cli-memo",
-      "env": "MEMO"
+      "app": "wcat",
+      "env": "WCAT"
     },
     "settings": null
   }

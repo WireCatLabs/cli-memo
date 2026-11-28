@@ -8,7 +8,7 @@ import { WCAT } from "./wcat.js"
 
 const root = new URL("../", import.meta.url)
 
-it("builds the shipped WireCat manifest from memo's own commands, identity and permission keys", () => {
+it("builds the shipped WireCat manifest from wcat's own commands, identity and permission keys", () => {
   const manifest = buildManifest({
     identity: WCAT,
     commands: describeProgram(createProgram({ env: process.env, streams: captureStreams() })),

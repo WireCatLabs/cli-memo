@@ -17,8 +17,8 @@ export const canonicalProject = async (
     throw new CliError(
       found.matches.length ? "validation_error" : "not_found",
       found.matches.length
-        ? `${reference} names ${found.matches.length} projects; give one by its key, as memo vocabulary show ${reference} lists them`
-        : `no project ${reference}; memo projects list shows yours, memo projects add creates one`,
+        ? `${reference} names ${found.matches.length} projects; give one by its key, as wcat vocabulary show ${reference} lists them`
+        : `no project ${reference}; wcat projects list shows yours, wcat projects add creates one`,
       { candidates: found.matches.map((entry) => ({ id: entry.id, key: entry.key, name: entry.name })) },
     )
   const entry = found.matches[0]

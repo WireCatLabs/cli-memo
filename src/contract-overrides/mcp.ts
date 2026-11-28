@@ -3,23 +3,23 @@ import type { SharedContractOverride } from "@wirecat/cli-base/commands"
 const JSON_OPTION = { flags: "--json", description: "print JSON", takes_value: false, mandatory: false }
 
 const REASON =
-  "Memo uses Core's stdio/HTTP transport and login while binding its profile-free local store, saved permissions and token state; connector management remains in the client app."
+  "wcat uses Core's stdio/HTTP transport and login while binding its profile-free local store, saved permissions and token state; connector management remains in the client app."
 
 // Reviewed differences from Core; update only after reviewing both definitions.
 export const mcp: readonly SharedContractOverride[] = [
   {
     command: ["mcp"],
     field: "description",
-    before: "serve this profile to an agent over MCP and set it up — `claude mcp add memo -- memo <profile> mcp serve`",
+    before: "serve this profile to an agent over MCP and set it up — `claude mcp add wcat -- wcat <profile> mcp serve`",
     after:
-      "serve memo commands over MCP on stdio or authenticated HTTP, limited by saved permissions — `claude mcp add memo -- memo mcp serve`",
+      "serve wcat commands over MCP on stdio or authenticated HTTP, limited by saved permissions — `claude mcp add wcat -- wcat mcp serve`",
     reason: REASON,
   },
   {
     command: ["mcp"],
     field: "summary",
     before: "serve this profile's commands to an AI agent, and set that up",
-    after: "serve memo's commands to an AI agent, and set that up",
+    after: "serve wcat's commands to an AI agent, and set that up",
     reason: REASON,
   },
   {
@@ -33,15 +33,15 @@ export const mcp: readonly SharedContractOverride[] = [
     command: ["mcp", "serve"],
     field: "description",
     before:
-      "serve this profile to an agent over MCP, on stdin and stdout — `claude mcp add memo -- memo <profile> mcp serve`; `memo mcp serve --profiles a,b` or `--profiles all` serves those profiles from one server and each tool asks which",
-    after: "serve memo commands over MCP on stdio or authenticated HTTP, limited by saved permissions",
+      "serve this profile to an agent over MCP, on stdin and stdout — `claude mcp add wcat -- wcat <profile> mcp serve`; `wcat mcp serve --profiles a,b` or `--profiles all` serves those profiles from one server and each tool asks which",
+    after: "serve wcat commands over MCP on stdio or authenticated HTTP, limited by saved permissions",
     reason: REASON,
   },
   {
     command: ["mcp", "serve"],
     field: "summary",
     before: "serve this profile's commands to an AI agent",
-    after: "serve memo's commands to an AI agent",
+    after: "serve wcat's commands to an AI agent",
     reason: REASON,
   },
   {
@@ -55,11 +55,11 @@ export const mcp: readonly SharedContractOverride[] = [
     command: ["mcp", "serve"],
     field: "examples",
     before: [
-      "memo personal mcp serve",
-      "memo mcp serve --profiles work,personal",
-      "memo personal mcp serve --http --public-url https://laptop.example.ts.net",
+      "wcat personal mcp serve",
+      "wcat mcp serve --profiles work,personal",
+      "wcat personal mcp serve --http --public-url https://laptop.example.ts.net",
     ],
-    after: ["memo mcp serve", "memo mcp serve --http --public-url https://laptop.example.ts.net"],
+    after: ["wcat mcp serve", "wcat mcp serve --http --public-url https://laptop.example.ts.net"],
     reason: REASON,
   },
   {
@@ -135,14 +135,14 @@ export const mcp: readonly SharedContractOverride[] = [
     field: "description",
     before:
       "forget every login `mcp serve --http` gave a browser app, of this profile or of the server `--profiles` names; each app must log in again",
-    after: "forget every login `memo mcp serve --http` gave a browser app; each app must log in again",
+    after: "forget every login `wcat mcp serve --http` gave a browser app; each app must log in again",
     reason: REASON,
   },
   {
     command: ["mcp", "revoke"],
     field: "examples",
-    before: ["memo personal mcp revoke", "memo mcp revoke --profiles all"],
-    after: ["memo mcp revoke --json"],
+    before: ["wcat personal mcp revoke", "wcat mcp revoke --profiles all"],
+    after: ["wcat mcp revoke --json"],
     reason: REASON,
   },
   {
@@ -163,8 +163,8 @@ export const mcp: readonly SharedContractOverride[] = [
   {
     command: ["mcp", "server", "start"],
     field: "examples",
-    before: ["memo personal mcp server start --public-url https://laptop.example.ts.net"],
-    after: ["memo mcp server start --public-url https://laptop.example.ts.net"],
+    before: ["wcat personal mcp server start --public-url https://laptop.example.ts.net"],
+    after: ["wcat mcp server start --public-url https://laptop.example.ts.net"],
     reason: REASON,
   },
   {
@@ -215,8 +215,8 @@ export const mcp: readonly SharedContractOverride[] = [
   {
     command: ["mcp", "server", "stop"],
     field: "examples",
-    before: ["memo personal mcp server stop"],
-    after: ["memo mcp server stop"],
+    before: ["wcat personal mcp server stop"],
+    after: ["wcat mcp server stop"],
     reason: REASON,
   },
   {
@@ -237,8 +237,8 @@ export const mcp: readonly SharedContractOverride[] = [
   {
     command: ["mcp", "server", "status"],
     field: "examples",
-    before: ["memo personal mcp server status --json"],
-    after: ["memo mcp server status --json"],
+    before: ["wcat personal mcp server status --json"],
+    after: ["wcat mcp server status --json"],
     reason: REASON,
   },
   {

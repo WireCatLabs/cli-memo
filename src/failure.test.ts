@@ -18,7 +18,7 @@ const report = async (error: unknown, args: string[] = [], tty = false) => {
 
 describe("failure handler", () => {
   it("reports a crash as internal_error without its own text", async () => {
-    const { exit, text } = await report(new Error("password=hunter2"), ["notes", "list", "--json"])
+    const { exit, text } = await report(new Error("password=hunter2"), ["facts", "list", "--json"])
     expect(exit).toBe(1)
     expect(JSON.parse(text)).toEqual({
       error: {
@@ -32,7 +32,7 @@ describe("failure handler", () => {
   })
 
   it("prints the whole record after the object under --debug", async () => {
-    const { text } = await report(new Error("boom"), ["notes", "list", "--json", "--debug"])
+    const { text } = await report(new Error("boom"), ["facts", "list", "--json", "--debug"])
     const [object, record] = text
       .trim()
       .split("\n")
@@ -40,14 +40,14 @@ describe("failure handler", () => {
     expect(object.error.code).toBe("internal_error")
     expect(record).toMatchObject({
       severity: "error",
-      command: "notes list",
+      command: "facts list",
       attributes: { thrown_message: "boom", stack: expect.any(Array) },
-      resource: { service: "memo" },
+      resource: { service: "wcat" },
     })
   })
 
-  it("prints the record of a command that failed under --debug, as bin/memo.ts reports it", async () => {
-    const args = ["notes", "show", "note:999999", "--json", "--debug"]
+  it("prints the record of a command that failed under --debug, as bin/wcat-wirecat.ts reports it", async () => {
+    const args = ["facts", "show", "fact:999999", "--json", "--debug"]
     const failed = await createProgram({ streams: captureStreams() })
       .exitOverride()
       .parseAsync(args, { from: "user" })
@@ -58,11 +58,11 @@ describe("failure handler", () => {
       .split("\n")
       .map((line) => JSON.parse(line))
     expect(object.error.code).toBe("not_found")
-    expect(record).toMatchObject({ command: "notes show", attributes: { stack: expect.any(Array) } })
+    expect(record).toMatchObject({ command: "facts show", attributes: { stack: expect.any(Array) } })
   })
 
   it("keeps a registered reason and its details", async () => {
-    const running = new CliError("rate_limited", "another memo sync is running (process 42)", {
+    const running = new CliError("rate_limited", "another wcat sync is running (process 42)", {
       reason: "sync.running",
       pid: 42,
       cause: "raw text",
@@ -72,7 +72,7 @@ describe("failure handler", () => {
     expect(JSON.parse(text).error).toEqual({
       code: "rate_limited",
       reason: "sync.running",
-      message: "another memo sync is running (process 42)",
+      message: "another wcat sync is running (process 42)",
       details: { pid: 42 },
       retry: { safe: true },
     })
@@ -80,7 +80,7 @@ describe("failure handler", () => {
 
   it("answers a parse failure as validation_error with Commander's words", async () => {
     const parse = new CommanderError(1, "commander.unknownOption", "error: unknown option '--nope'")
-    const { exit, text } = await report(parse, ["notes", "list", "--nope", "--json"])
+    const { exit, text } = await report(parse, ["facts", "list", "--nope", "--json"])
     expect(exit).toBe(2)
     expect(JSON.parse(text).error).toEqual({
       code: "validation_error",
@@ -91,7 +91,7 @@ describe("failure handler", () => {
   })
 
   it("writes one line for a person at a terminal", async () => {
-    expect((await report(new CliError("not_found", "no note 7"), ["notes", "show", "7"], true)).text).toBe(
+    expect((await report(new CliError("not_found", "no note 7"), ["facts", "show", "7"], true)).text).toBe(
       "✗ no note 7",
     )
   })
@@ -121,7 +121,7 @@ describe("failure handler", () => {
     })
   })
 
-  it("registers every reason memo raises", () => {
+  it("registers every reason wcat raises", () => {
     const known = new Set([...BASE_REASONS, ...(failureContext(APP.errors).reasons ?? [])].map((entry) => entry.reason))
     const raised = readdirSync("src", { recursive: true, encoding: "utf8" })
       .filter((file) => file.endsWith(".ts") && !file.endsWith(".test.ts"))

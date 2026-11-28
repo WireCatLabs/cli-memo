@@ -14,7 +14,7 @@ const shortened = new WeakMap<MessageStore, Set<string>>()
 export const crmNotes = (store: MessageStore): string[] => [...(shortened.get(store) ?? [])]
 
 /**
- * What memo may show of one CRM copy (SEC-197): what the user its sync signed in as reads, as cli-core's `search all`
+ * What wcat may show of one CRM copy (SEC-197): what the user its sync signed in as reads, as cli-core's `search all`
  * reads another account's copy. A copy that limits its users and names none shows nothing; an account that is no CRM,
  * as an ERP's import, shows whole. A note on why it shows less is kept for the answer (`crmNotes`).
  */
@@ -48,7 +48,7 @@ export const crmViewers = async (store: MessageStore, keys: readonly AccountKey[
   )
 
 /**
- * Whether memo may show a deal or lead: the owner's own always, a copy's by cli-core's `seenBy` rule, which
+ * Whether wcat may show a deal or lead: the owner's own always, a copy's by cli-core's `seenBy` rule, which
  * `@wirecat/cli-core/store` declares but does not export at run time.
  */
 const crmSees = (store: MessageStore) => {
@@ -66,7 +66,7 @@ const crmSees = (store: MessageStore) => {
   }
 }
 
-/** The rows of `rows` memo may show. */
+/** The rows of `rows` wcat may show. */
 export const seenRows = async <T extends Owned>(store: MessageStore, rows: readonly T[]): Promise<T[]> => {
   const sees = crmSees(store)
   const kept = await Promise.all(rows.map(sees))
@@ -74,9 +74,9 @@ export const seenRows = async <T extends Owned>(store: MessageStore, rows: reado
 }
 
 /**
- * A page of `most` rows memo may show, read on past the rows it hides so a page is short only at the end. cli-core's
+ * A page of `most` rows wcat may show, read on past the rows it hides so a page is short only at the end. cli-core's
  * `DealFilter.viewer` cannot do it in SQL here: it hides every row not assigned to the viewer, the owner's own and
- * other accounts' too, and memo lists them together.
+ * other accounts' too, and wcat lists them together.
  */
 export const seenPage = async <T extends Owned>(
   store: MessageStore,
@@ -96,7 +96,7 @@ export const seenPage = async <T extends Owned>(
   return { items: kept.slice(0, most), hasMore: kept.length > most || more }
 }
 
-/** A deal or lead by its ref; one in a copy memo may not show is not found, as cli-core's `show` answers it. */
+/** A deal or lead by its ref; one in a copy wcat may not show is not found, as cli-core's `show` answers it. */
 export const readableDeal = async (store: MessageStore, ref: string): Promise<Deal> => {
   const found = await store.deals.get(ref)
   if (!(await crmSees(store)(found))) {
@@ -110,7 +110,7 @@ export const readableDeal = async (store: MessageStore, ref: string): Promise<De
   return found
 }
 
-/** A pipeline's funnel, counting in a CRM copy only the rows memo may show. */
+/** A pipeline's funnel, counting in a CRM copy only the rows wcat may show. */
 export const readablePipeline = async (
   store: MessageStore,
   ref: string,

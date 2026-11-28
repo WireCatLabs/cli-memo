@@ -63,7 +63,7 @@ const groupsOf = (proposals: readonly Proposal[], label: (ref: string | null) =>
   return [...people]
     .filter(([, count]) => count >= 2)
     .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-    .map(([chat, count]) => ({ chat, title: label(chat), people: count, review: `memo review list via:${chat}` }))
+    .map(([chat, count]) => ({ chat, title: label(chat), people: count, review: `wcat review list via:${chat}` }))
 }
 
 const scanned = async (store: MessageStore, scans: LinkScanResult[], written: boolean) => {
@@ -99,7 +99,7 @@ const scanned = async (store: MessageStore, scans: LinkScanResult[], written: bo
 
 const scanText = ({ written, scans }: Awaited<ReturnType<typeof scanned>>) =>
   [
-    written ? "Proposed for your review (memo review):" : "Nothing written; --yes proposes these for your review:",
+    written ? "Proposed for your review (wcat review):" : "Nothing written; --yes proposes these for your review:",
     ...scans.flatMap(({ project, title, proposals, groups, skipped }) => [
       `${title ?? project ?? "people by shared mail domain"}: ${proposals.length} to propose; skipped ` +
         `${skipped.confirmed} linked, ${skipped.rejected} rejected, ${skipped.belowThreshold} weak, ` +
@@ -122,7 +122,7 @@ export const relationshipsScanCommand = (
       "chats, mail threads and people that look like a project's, scored from the store: its name and aliases in " +
         "titles and messages, the chats and threads of its members in every messenger, spreading from what it finds. " +
         "With no project, people who share a company mail domain. Lists them and writes nothing; --yes writes them " +
-        "as proposals by memo-scan for you to decide in memo review. Never confirms, and never proposes again what " +
+        "as proposals by wcat-scan for you to decide in wcat review. Never confirms, and never proposes again what " +
         "you rejected",
     )
     .summary("propose chats and people for a project; nothing is written without --yes")

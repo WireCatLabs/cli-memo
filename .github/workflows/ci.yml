@@ -21,7 +21,7 @@ jobs:
       pack: ${{ inputs.pack || false }}
       bun-run: pnpm build && pnpm smoke:bun
       cli: true
-      bin: memo
+      bin: wcat-wirecat
       checks: |
         pnpm smoke:node
       # Off until the unit suite passes on Windows: its first run there failed the mail sync tests. macOS passed.

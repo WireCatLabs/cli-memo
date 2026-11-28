@@ -3,7 +3,6 @@ import { openStore } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest"
 import { EXAMPLES } from "./examples.js"
-import { MOVED_TO_MAIL } from "./mail/moved.js"
 import { createProgram } from "./program.js"
 
 /** Groups that also run on their own, so they keep examples of their own. */
@@ -19,7 +18,7 @@ const leaves = (command: Command, path: string[] = []): string[] =>
       : [[...path, child.name()].join(" ")],
   )
 
-/** Leaves whose shared definition (cli-core) carries its own examples; memo need not repeat them. */
+/** Leaves whose shared definition (cli-core) carries its own examples; wcat need not repeat them. */
 const examplesOf = (command: Command, path: string[] = []): Map<string, readonly string[]> =>
   new Map(
     command.commands.flatMap((child) => {
@@ -53,17 +52,16 @@ describe("examples", () => {
   // The task commands cli-core builds resolve --source in a hook, before the replaced action.
   beforeAll(async () => {
     // A parse with the action replaced proves the example parses, not that the command works, so the matrix skips it.
-    vi.stubEnv("MEMO_TEST_ARGV_LOG", "")
+    vi.stubEnv("WCAT_TEST_ARGV_LOG", "")
     const store = await openStore({ env: {} })
     for (const provider of ["telegram", "max"])
       await store.accounts.saveAccount({ provider, account: "1" }, { name: null })
     await store.close()
   })
 
-  it("gives every leaf one to three examples, and names no command memo lacks", () => {
-    const moved = MOVED_TO_MAIL.map(([from]) => `mail ${from}`)
+  it("gives every leaf one to three examples, and names no command wcat lacks", () => {
     const program = createProgram({ env: {} })
-    const all = leaves(program).filter((path) => !moved.includes(path))
+    const all = leaves(program)
     const shared = examplesOf(program)
     const examples = (path: string) => EXAMPLES[path] ?? shared.get(path)
     expect(all.filter((path) => !examples(path) || (examples(path)?.length ?? 0) > 3)).toEqual([])
@@ -74,7 +72,7 @@ describe("examples", () => {
     "%s: %s parses",
     async (path, line) => {
       const [tool, ...args] = words(line)
-      expect(tool).toBe("memo")
+      expect(tool).toBe("wcat")
       expect(args.slice(0, path.split(" ").length).join(" ")).toBe(path)
       await expect(parse(args)).resolves.toBeUndefined()
     },

@@ -7,11 +7,12 @@ import type { Command } from "commander"
 import { expect, it, vi } from "vitest"
 import { answerOf } from "../../test/answer.js"
 import { storeMail } from "../../test/mail-store.js"
+import { addNote } from "../../test/notes.js"
 import { createProgram } from "../program.js"
 
 it("searches three typed resources together, separates mail and messages, and filters native note/message types", async () => {
-  const root = mkdtempSync(join(tmpdir(), "memo-resources-"))
-  const env = { ...process.env, MESSAGING_STORE: join(root, "m.db"), MEMO_CONFIG_DIR: join(root, "config") }
+  const root = mkdtempSync(join(tmpdir(), "wcat-resources-"))
+  const env = { ...process.env, MESSAGING_STORE: join(root, "m.db"), WCAT_CONFIG_DIR: join(root, "config") }
   const store = await openStore({ env })
   const message = {
     id: "1",
@@ -98,8 +99,8 @@ it("searches three typed resources together, separates mail and messages, and fi
 })
 
 it("searches every mail account, or with --source only that address", async () => {
-  const root = mkdtempSync(join(tmpdir(), "memo-mail-accounts-"))
-  const env = { ...process.env, MESSAGING_STORE: join(root, "m.db"), MEMO_CONFIG_DIR: join(root, "config") }
+  const root = mkdtempSync(join(tmpdir(), "wcat-mail-accounts-"))
+  const env = { ...process.env, MESSAGING_STORE: join(root, "m.db"), WCAT_CONFIG_DIR: join(root, "config") }
   const store = await openStore({ env })
   const message = {
     id: "1",
@@ -161,8 +162,8 @@ it("searches every mail account, or with --source only that address", async () =
 })
 
 it("shows each email reference first, with its people, labels, subject and an excerpt, at the detail asked", async () => {
-  const root = mkdtempSync(join(tmpdir(), "memo-mail-detail-"))
-  const env = { ...process.env, MESSAGING_STORE: join(root, "m.db"), MEMO_CONFIG_DIR: join(root, "config") }
+  const root = mkdtempSync(join(tmpdir(), "wcat-mail-detail-"))
+  const env = { ...process.env, MESSAGING_STORE: join(root, "m.db"), WCAT_CONFIG_DIR: join(root, "config") }
   const store = await openStore({ env })
   const accountId = await store.accounts.saveAccount(
     { provider: "email", account: "owner@example.com" },
@@ -230,8 +231,8 @@ it("shows each email reference first, with its people, labels, subject and an ex
 })
 
 it("narrows a search to the text of files with content:, in search messages and search all", async () => {
-  const root = mkdtempSync(join(tmpdir(), "memo-attachment-text-"))
-  const env = { ...process.env, MESSAGING_STORE: join(root, "m.db"), MEMO_CONFIG_DIR: join(root, "config") }
+  const root = mkdtempSync(join(tmpdir(), "wcat-attachment-text-"))
+  const env = { ...process.env, MESSAGING_STORE: join(root, "m.db"), WCAT_CONFIG_DIR: join(root, "config") }
   const key = { provider: "telegram", account: "1" }
   const store = await openStore({ env })
   await store.messages.saveMessages(
@@ -274,8 +275,8 @@ it("narrows a search to the text of files with content:, in search messages and 
 })
 
 it("search all runs as no stored account and names every account it read", async () => {
-  const root = mkdtempSync(join(tmpdir(), "memo-all-accounts-"))
-  const env = { ...process.env, MESSAGING_STORE: join(root, "m.db"), MEMO_CONFIG_DIR: join(root, "config") }
+  const root = mkdtempSync(join(tmpdir(), "wcat-all-accounts-"))
+  const env = { ...process.env, MESSAGING_STORE: join(root, "m.db"), WCAT_CONFIG_DIR: join(root, "config") }
   const store = await openStore({ env })
   const message = {
     id: "1",
@@ -331,8 +332,8 @@ it("search all runs as no stored account and names every account it read", async
 })
 
 it("search all finds calendar events in every calendar, names each one read, and --only events reads them alone", async () => {
-  const root = mkdtempSync(join(tmpdir(), "memo-all-events-"))
-  const env = { ...process.env, MESSAGING_STORE: join(root, "m.db"), MEMO_CONFIG_DIR: join(root, "config") }
+  const root = mkdtempSync(join(tmpdir(), "wcat-all-events-"))
+  const env = { ...process.env, MESSAGING_STORE: join(root, "m.db"), WCAT_CONFIG_DIR: join(root, "config") }
   const store = await openStore({ env })
   await store.accounts.registerProvider({ name: "google-calendar", kind: "events", aliases: ["gcal"], command: "gcal" })
   for (const account of ["work@example.test", "home@example.test"]) {
@@ -425,8 +426,8 @@ it("search all finds calendar events in every calendar, names each one read, and
 })
 
 it("search messages and search all answer meta.complete false and name the history gap for a chat held in part", async () => {
-  const root = mkdtempSync(join(tmpdir(), "memo-partial-"))
-  const env = { ...process.env, MESSAGING_STORE: join(root, "m.db"), MEMO_CONFIG_DIR: join(root, "config") }
+  const root = mkdtempSync(join(tmpdir(), "wcat-partial-"))
+  const env = { ...process.env, MESSAGING_STORE: join(root, "m.db"), WCAT_CONFIG_DIR: join(root, "config") }
   const store = await openStore({ env })
   const account = { provider: "telegram", account: "1" }
   const message = {
@@ -464,8 +465,8 @@ it("search messages and search all answer meta.complete false and name the histo
 })
 
 it("search messages finds a reply that does not name its topic when asked a question, and stays strict for words", async () => {
-  const root = mkdtempSync(join(tmpdir(), "memo-reply-"))
-  const env = { ...process.env, MESSAGING_STORE: join(root, "m.db"), MEMO_CONFIG_DIR: join(root, "config") }
+  const root = mkdtempSync(join(tmpdir(), "wcat-reply-"))
+  const env = { ...process.env, MESSAGING_STORE: join(root, "m.db"), WCAT_CONFIG_DIR: join(root, "config") }
   const store = await openStore({ env })
   const message = (id: string, text: string, extra: object = {}) => ({
     id,
@@ -502,8 +503,8 @@ it("search messages finds a reply that does not name its topic when asked a ques
 })
 
 it("search all finds a time in the words of a question, and names the word no note holds when nothing has them all", async () => {
-  const root = mkdtempSync(join(tmpdir(), "memo-time-"))
-  const env = { ...process.env, MESSAGING_STORE: join(root, "m.db"), MEMO_CONFIG_DIR: join(root, "config") }
+  const root = mkdtempSync(join(tmpdir(), "wcat-time-"))
+  const env = { ...process.env, MESSAGING_STORE: join(root, "m.db"), WCAT_CONFIG_DIR: join(root, "config") }
   const store = await openStore({ env })
   for (const day of [1, 2, 3])
     await store.notes.addNote({ text: `Steering committee meeting ${day}: the review moved to 10:30.` })
@@ -522,12 +523,12 @@ it("search all finds a time in the words of a question, and names the word no no
 })
 
 it("search all --harder without the owner's consent sends nothing and says why, in the plain order", async () => {
-  const root = mkdtempSync(join(tmpdir(), "memo-harder-"))
+  const root = mkdtempSync(join(tmpdir(), "wcat-harder-"))
   // The shared settings, where the consent lives, stay in the temp folder whatever the shell sets.
   const env = {
     ...process.env,
     MESSAGING_STORE: join(root, "m.db"),
-    MEMO_CONFIG_DIR: join(root, "config"),
+    WCAT_CONFIG_DIR: join(root, "config"),
     WIRECAT_CONFIG_DIR: join(root, "wirecat"),
   }
   const store = await openStore({ env })
@@ -569,7 +570,7 @@ it("search all --harder without the owner's consent sends nothing and says why, 
   expect(refs(json)).toEqual(refs(plain))
   expect(answerOf(json.stdout.join("")).missing).toContainEqual({
     field: "order",
-    why: expect.stringContaining("memo models search-consents set "),
+    why: expect.stringContaining("wcat models search-consents set "),
   })
   expect(answerOf(json.stdout.join("")).meta.ranking).toEqual({
     applied: false,
@@ -588,8 +589,8 @@ it("search all --harder without the owner's consent sends nothing and says why, 
 })
 
 it("reads days in the zone asked, keeps the page to --limit, shows each hit at the detail asked, and keeps fraud in place under --plain-order", async () => {
-  const root = mkdtempSync(join(tmpdir(), "memo-search-options-"))
-  const env = { ...process.env, MESSAGING_STORE: join(root, "m.db"), MEMO_CONFIG_DIR: join(root, "config") }
+  const root = mkdtempSync(join(tmpdir(), "wcat-search-options-"))
+  const env = { ...process.env, MESSAGING_STORE: join(root, "m.db"), WCAT_CONFIG_DIR: join(root, "config") }
   const store = await openStore({ env })
   const long = `Zonedword ${"synthetic filler ".repeat(40)}tailword`
   const message = (id: string, timestamp: string) => ({
@@ -672,8 +673,8 @@ it("reads days in the zone asked, keeps the page to --limit, shows each hit at t
 })
 
 it("search memories keeps the page to --limit", async () => {
-  const root = mkdtempSync(join(tmpdir(), "memo-search-memories-"))
-  const env = { ...process.env, MESSAGING_STORE: join(root, "m.db"), MEMO_CONFIG_DIR: join(root, "config") }
+  const root = mkdtempSync(join(tmpdir(), "wcat-search-memories-"))
+  const env = { ...process.env, MESSAGING_STORE: join(root, "m.db"), WCAT_CONFIG_DIR: join(root, "config") }
   const run = async (...args: string[]) => {
     const streams = captureStreams()
     await createProgram({ streams, env })
@@ -681,7 +682,7 @@ it("search memories keeps the page to --limit", async () => {
       .parseAsync([...args, "--json"], { from: "user" })
     return answerOf(streams.stdout.join(""))
   }
-  const note = await run("notes", "add", "Synthetic Fridays")
+  const note = await addNote(env, "Synthetic Fridays")
   for (const text of ["Bob Sample prefers Fridays", "Carol Sample also likes Fridays"])
     await run("memories", "add", text, "--kind", "preference", "--scope", "work", "--evidence", note.ref)
   expect((await run("search", "memories", "Fridays")).items).toHaveLength(2)

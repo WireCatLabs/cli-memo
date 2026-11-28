@@ -10,7 +10,7 @@ import { createProgram } from "../program.js"
 import { windowStart } from "./digests.js"
 
 const ROUTE = "telegram-bot:personal/user:42"
-const DIGEST = "Run memo skill show morning-digest and follow it."
+const DIGEST = "Run wcat skill show morning-digest and follow it."
 const OTHER = "email:work/me@example.test"
 
 afterEach(() => {
@@ -18,7 +18,7 @@ afterEach(() => {
 })
 
 const setUp = () => {
-  const root = mkdtempSync(join(tmpdir(), "memo-digests-"))
+  const root = mkdtempSync(join(tmpdir(), "wcat-digests-"))
   const bin = join(root, "bin")
   mkdirSync(bin)
   // Answers as claude's JSON does: an empty report, and the run's cost.
@@ -37,9 +37,9 @@ process.stdout.write(JSON.stringify({ type: "result", result: JSON.stringify(rep
     HOME: join(root, "home"),
     AI_AGENT: "",
     CLAUDECODE: "",
-    MEMO_READ_ONLY: "",
+    WCAT_READ_ONLY: "",
     MESSAGING_STORE: join(root, "s.db"),
-    MEMO_CONFIG_DIR: join(root, "config"),
+    WCAT_CONFIG_DIR: join(root, "config"),
     XDG_DATA_HOME: join(root, "data"),
     XDG_CONFIG_HOME: join(root, "xdg-config"),
     XDG_STATE_HOME: join(root, "state"),
@@ -64,7 +64,7 @@ process.stdout.write(JSON.stringify({ type: "result", result: JSON.stringify(rep
   }
   const json = async (...args: string[]) => envelopeOf(await run(...args, "--json"))
   const timer = (name: string) =>
-    readFileSync(join(env.XDG_CONFIG_HOME ?? "", "systemd", "user", `memo-schedule-${name}.timer`), "utf8")
+    readFileSync(join(env.XDG_CONFIG_HOME ?? "", "systemd", "user", `wcat-schedule-${name}.timer`), "utf8")
   const schedule = (name: string) => JSON.parse(readFileSync(join(state, "schedules", name, "schedule.json"), "utf8"))
   return { env, ran, run, json, timer, schedule, state }
 }
@@ -78,7 +78,7 @@ const morningDigest = (state: string, claude: string) => {
     JSON.stringify({
       name: "morning-digest",
       kind: "agent",
-      argv: [claude, "-p", "Run memo skill show morning-digest and follow it.", "--max-budget-usd", "0.5"],
+      argv: [claude, "-p", "Run wcat skill show morning-digest and follow it.", "--max-budget-usd", "0.5"],
       when: { daily: "08:30" },
       environment: {},
       createdAt: "2026-11-01T00:00:00.000Z",
@@ -277,10 +277,10 @@ describe("digests by name", () => {
     const { json, env } = setUp()
     await json("digest", "add", "d", "--at", "08:30", "--paused", "--from-app")
     const timers = join(env.XDG_CONFIG_HOME ?? "", "systemd", "user")
-    expect(existsSync(join(timers, "memo-schedule-d.timer"))).toBe(false)
+    expect(existsSync(join(timers, "wcat-schedule-d.timer"))).toBe(false)
     expect((await json("digest", "list")).items[0]).toMatchObject({ scheduled: false, next_at: null })
     expect((await json("digest", "resume", "d", "--from-app")).item).toMatchObject({ scheduled: true })
-    expect(existsSync(join(timers, "memo-schedule-d.timer"))).toBe(true)
+    expect(existsSync(join(timers, "wcat-schedule-d.timer"))).toBe(true)
     expect((await json("digest", "pause", "d", "--from-app")).item).toMatchObject({ scheduled: false })
   })
 
@@ -327,17 +327,17 @@ describe("digests by name", () => {
       "--from-app",
     )
 
-    env.MEMO_SCHEDULED = "weekly"
+    env.WCAT_SCHEDULED = "weekly"
     const weekly = await run("skill", "show", "morning-digest")
     expect(weekly).toContain("## This digest: weekly")
-    expect(weekly).toMatch(/memo review agenda --compact --limit 40 --since-time \S+ --source mail/)
+    expect(weekly).toMatch(/wcat review agenda --compact --limit 40 --since-time \S+ --source mail/)
     expect(weekly).toContain("Only money.")
 
-    env.MEMO_SCHEDULED = "morning-digest"
+    env.WCAT_SCHEDULED = "morning-digest"
     const morning = await run("skill", "show", "morning-digest")
     expect(morning).not.toContain("## This digest")
     expect(morning).not.toContain("Only money.")
-    delete env.MEMO_SCHEDULED
+    delete env.WCAT_SCHEDULED
   })
 })
 
@@ -366,9 +366,9 @@ describe("digests after other changes", () => {
     const { json, run, env, state } = setUp()
     morningDigest(state, "claude")
     await json("digest", "edit", "morning-digest", "--at", "08:30", "--at", "18:00", "--from-app")
-    env.MEMO_SCHEDULED = "morning-digest"
+    env.WCAT_SCHEDULED = "morning-digest"
     expect(await run("skill", "show", "morning-digest")).toContain("## This digest: Morning digest")
-    delete env.MEMO_SCHEDULED
+    delete env.WCAT_SCHEDULED
   })
 })
 
@@ -403,7 +403,7 @@ describe("digests saved before cli-core kept their agent", () => {
       "--permission-mode",
       "dontAsk",
       "--allowedTools",
-      "Bash(memo:*)",
+      "Bash(wcat:*)",
       "Bash(mail:*)",
       "--no-session-persistence",
       "--model",
@@ -435,7 +435,7 @@ describe("digests saved before cli-core kept their agent", () => {
       legacy(state, argv(claudeOf(env)))
       const listed = await json("digest", "list")
       expect(schedule("morning-digest").agent).toBeUndefined()
-      expect(listed.items[0].needs).toContain("memo digest edit morning-digest --agent claude")
+      expect(listed.items[0].needs).toContain("wcat digest edit morning-digest --agent claude")
     }
   })
 
@@ -444,11 +444,11 @@ describe("digests saved before cli-core kept their agent", () => {
     legacy(state, ["codex", "exec", "--skip-git-repo-check", "--sandbox", "workspace-write", DIGEST])
     const listed = await json("digest", "list")
     expect(schedule("morning-digest").agent).toBeUndefined()
-    expect(listed.items[0].needs).toContain("memo digest edit morning-digest --agent codex --allow-dangerous")
+    expect(listed.items[0].needs).toContain("wcat digest edit morning-digest --agent codex --allow-dangerous")
   })
 
   it("is never saved again in an agent's run or under the read-only lock", async () => {
-    for (const extra of [{ AI_AGENT: "claude-code_2-1-296_agent" }, { MEMO_READ_ONLY: "1" }, { MEMO_SCHEDULED: "x" }]) {
+    for (const extra of [{ AI_AGENT: "claude-code_2-1-296_agent" }, { WCAT_READ_ONLY: "1" }, { WCAT_SCHEDULED: "x" }]) {
       const { json, schedule, state, env } = setUp()
       legacy(state, [claudeOf(env), "-p", DIGEST, "--max-budget-usd", "0.5"])
       Object.assign(env, extra)
@@ -458,7 +458,7 @@ describe("digests saved before cli-core kept their agent", () => {
   })
 })
 
-describe("schedules of memo commands and agents", () => {
+describe("schedules of wcat commands and agents", () => {
   it("runs a command once at a time, quietly, to one route, and pauses and resumes its timer", async () => {
     const { json, run, schedule, ran } = setUp()
     const once = envelopeOf(
@@ -471,7 +471,7 @@ describe("schedules of memo commands and agents", () => {
     expect(schedule("once")).toMatchObject({ when: { once: expect.any(String) }, notify: "never", to: [OTHER] })
     expect((await json("schedule", "pause", "once")).item).toMatchObject({ name: "once", paused: true })
     expect((await json("schedule", "resume", "once")).item).toMatchObject({ name: "once", paused: false })
-    expect(ran.at(-1)).toEqual(["systemctl", "--user", "enable", "--now", "memo-schedule-once.timer"])
+    expect(ran.at(-1)).toEqual(["systemctl", "--user", "enable", "--now", "wcat-schedule-once.timer"])
   })
 
   it("starts an agent once, allowed past its limits, and lists the agents a schedule may start", async () => {

@@ -1,10 +1,10 @@
 import type { SharedContractOverride } from "@wirecat/cli-base/commands"
 
 const REASON =
-  "Memo installs its own stored-data instructions through its environment, prints the packaged skills (morning-digest with the owner's brief from the store after it), and takes --json on each skill command because it has no global one."
+  "wcat installs its own stored-data instructions through its environment, prints the packaged skills (morning-digest with the owner's brief from the store after it), and takes --json on each skill command because it has no global one."
 
 const SHOW_DESCRIPTION =
-  "print SKILL.md — `memo skill install` puts it where Claude Code, Codex, Gemini CLI and OpenClaw look for it, and where Hermes does on request; --for prints the copy already there"
+  "print SKILL.md — `wcat skill install` puts it where Claude Code, Codex, Gemini CLI and OpenClaw look for it, and where Hermes does on request; --for prints the copy already there"
 
 const JSON_OPTION = { flags: "--json", description: "print JSON", takes_value: false, mandatory: false }
 const SHOW_FOR = {
@@ -29,20 +29,20 @@ export const skill: readonly SharedContractOverride[] = [
     command: ["skill", "show"],
     field: "description",
     before: SHOW_DESCRIPTION,
-    after: `${SHOW_DESCRIPTION}; morning-digest ends with your brief from \`memo digest brief\` when you wrote one`,
+    after: `${SHOW_DESCRIPTION}; morning-digest ends with your brief from \`wcat digest brief\` when you wrote one`,
     reason: REASON,
   },
   {
     command: ["skill", "show"],
     field: "examples",
-    before: ["memo skill show"],
+    before: ["wcat skill show"],
     after: null,
     reason: REASON,
   },
   {
     command: ["skill", "install"],
     field: "examples",
-    before: ["memo skill install --for agents"],
+    before: ["wcat skill install --for agents"],
     after: null,
     reason: REASON,
   },

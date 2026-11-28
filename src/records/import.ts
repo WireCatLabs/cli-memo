@@ -18,7 +18,7 @@ import { importRecords, placeText, type Receipt } from "./input.js"
 import { recordMappingCommands, sourceOf } from "./mapping.js"
 import { recordCommands } from "./record-commands.js"
 
-/** The review kinds of what the import proposed, as `memo review kind:` takes them: each ref's prefix. */
+/** The review kinds of what the import proposed, as `wcat review kind:` takes them: each ref's prefix. */
 const kindsOf = (proposed: readonly string[]) => [...new Set(proposed.map((ref) => ref.slice(0, ref.indexOf(":"))))]
 
 const LOCALES = ["en", "ru", "es"]
@@ -42,7 +42,7 @@ export const receiptText = (receipt: Receipt): string =>
       `${receipt.deleted} deleted, ${receipt.refused} refused`,
     ...(receipt.proposed.length
       ? [
-          `proposed for your review (memo review list kind:${kindsOf(receipt.proposed).join(",")}): ` +
+          `proposed for your review (wcat review list kind:${kindsOf(receipt.proposed).join(",")}): ` +
             receipt.proposed.join(" "),
         ]
       : []),
@@ -50,7 +50,7 @@ export const receiptText = (receipt: Receipt): string =>
     ...receipt.unmatched.map(
       (one) =>
         `unmatched ${one.key}: ${one.candidates.length ? `could be ${one.candidates.join(" or ")}` : one.reason}; ` +
-        "you say which with memo records link",
+        "you say which with wcat records link",
     ),
     ...receipt.flagged.map((one) => `changed at the source ${one.key}: ${one.entity} kept as it was`),
     ...receipt.ignored.map((one) => `kept as data only ${one.key} ${one.pointer} (${one.reason})`),

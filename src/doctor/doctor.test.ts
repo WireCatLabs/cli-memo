@@ -10,13 +10,13 @@ import { updateNotice } from "../update.js"
 let env: NodeJS.ProcessEnv
 let dir: string
 
-const memo = async (...args: string[]) => {
+const wcat = async (...args: string[]) => {
   const streams = captureStreams()
   await createProgram({ streams, env }).exitOverride().parseAsync(args, { from: "user" })
   return streams.stdout.join("")
 }
 
-const doctor = (...args: string[]) => memo("doctor", ...args)
+const doctor = (...args: string[]) => wcat("doctor", ...args)
 
 /** The shared doctor answers JSON off a terminal, so the text a person reads needs one. */
 const doctorAtTerminal = async (...args: string[]) => {
@@ -40,21 +40,21 @@ beforeEach(() => {
     ...process.env,
     HOME: dir,
     XDG_CONFIG_HOME: join(dir, "xdg"),
-    MEMO_CONFIG_DIR: join(dir, "config"),
-    MEMO_STATE_DIR: join(dir, "state"),
+    WCAT_CONFIG_DIR: join(dir, "config"),
+    WCAT_STATE_DIR: join(dir, "state"),
     MESSAGING_STORE: join(dir, "messages.db"),
     WIRECAT_STATE_DIR: join(dir, "wirecat"),
   }
   // cli-base's notice stays silent under CI and the opt-out variables; the release check runs with CI set.
-  for (const name of ["CI", "NO_UPDATE_NOTIFIER", "MEMO_NO_UPDATE_CHECK"]) delete env[name]
+  for (const name of ["CI", "NO_UPDATE_NOTIFIER", "WCAT_NO_UPDATE_CHECK"]) delete env[name]
 })
 
 afterEach(() => {
   process.exitCode = 0
 })
 
-describe("memo doctor", () => {
-  it("says where memo keeps its files and that nothing needs attention on a fresh setup", async () => {
+describe("wcat doctor", () => {
+  it("says where wcat keeps its files and that nothing needs attention on a fresh setup", async () => {
     mkdirSync(join(dir, "wirecat"), { recursive: true })
     writeFileSync(join(dir, "messages.db"), "")
     const report = JSON.parse(await doctor("--json"))
@@ -68,28 +68,9 @@ describe("memo doctor", () => {
     expect(report.meta.run_id).toEqual(expect.any(String))
   })
 
-  it("names two notes folders that overlap", async () => {
-    mkdirSync(join(dir, "notes", "Work"), { recursive: true })
-    updateConfig(
-      () => ({
-        notes: {
-          folders: [
-            { id: "1", path: join(dir, "notes") },
-            { id: "2", path: join(dir, "notes", "Work") },
-          ],
-        },
-      }),
-      env,
-    )
-    expect(await doctorAtTerminal()).toContain(
-      `! the notes folders ${join(dir, "notes")} and ${join(dir, "notes", "Work")} overlap, so the files they share are read twice`,
-    )
-  })
-
   it("names each problem with the command that fixes it, and exits 1", async () => {
     updateConfig(
       () => ({
-        notes: { folders: [join(dir, "gone")] },
         mail: { accounts: [{ name: "home", address: "alice@example.test" }] },
         auto: { enabled: true, every: "5m" },
       }),
@@ -99,18 +80,15 @@ describe("memo doctor", () => {
     const text = await doctorAtTerminal()
 
     expect(text).toContain(
-      `! the notes folder ${join(dir, "gone")} is missing — connect its disk; if it moved, memo folders update <id> <new path>`,
-    )
-    expect(text).toContain(
       "the mail CLI syncs alice@example.test into the same store (mail <profile> session start --address " +
-        "<address>, then mail <profile> sync), and the mail already stored stays — memo config unset mail",
+        "<address>, then mail <profile> sync), and the mail already stored stays — wcat config unset mail",
     )
-    expect(text).toContain("! the timer is on in the config but not installed — memo jobs start")
+    expect(text).toContain("! the timer is on in the config but not installed — wcat jobs start")
     expect(process.exitCode).toBe(1)
   })
 })
 
-describe("memo doctor on a config file with problems", () => {
+describe("wcat doctor on a config file with problems", () => {
   it("says where the JSON stops parsing, and still answers with exit 0", async () => {
     writeConfig('{\n  "update_check": false,\n  "notes": \n}\n')
 
@@ -152,52 +130,52 @@ describe("memo doctor on a config file with problems", () => {
           file: configPath(env),
           key: "update_check",
           what: "setting update_check has to be of type boolean",
-          fix: "memo config unset update_check",
+          fix: "wcat config unset update_check",
         },
         {
           kind: "unknown_setting",
           file: configPath(env),
           key: "default_profile",
-          what: "setting default_profile is not a setting of memo",
-          fix: "memo config unset default_profile",
+          what: "setting default_profile is not a setting of wcat",
+          fix: "wcat config unset default_profile",
         },
         {
-          kind: "unknown_setting",
+          kind: "unknown_permission",
           file: configPath(env),
-          key: "notes.colour",
-          what: "setting notes.colour is not a setting of memo",
-          fix: "memo config unset notes.colour",
+          key: "permissions.notes.edit",
+          what: "permissions.notes.edit names no command",
+          fix: "wcat config unset permissions.notes.edit",
         },
         {
           kind: "unknown_permission",
           file: configPath(env),
           key: "permissions.auto.start",
           what: "permissions.auto.start names no command",
-          fix: "memo config unset permissions.auto.start",
+          fix: "wcat config unset permissions.auto.start",
         },
       ]),
     )
     expect(issues).toHaveLength(4)
     expect(JSON.stringify(issues)).not.toContain("sometimes-secret")
     expect(() => loadConfig(env)).toThrow(
-      "remove it with `memo config unset notes.colour` (and 2 more problems — `memo doctor` lists them all)",
+      "remove it with `wcat config unset update_check` (and 1 more problem — `wcat doctor` lists them all)",
     )
 
-    for (const { fix } of issues) await memo(...fix.split(" ").slice(1))
+    for (const { fix } of issues) await wcat(...fix.split(" ").slice(1))
 
     expect(JSON.parse(await doctor("--json")).item.config.issues).toEqual([])
+    // The notes section belongs to the files CLI now: wcat keeps it as it is.
     expect(JSON.parse(readFileSync(configPath(env), "utf8"))).toEqual({
-      notes: { folders: [] },
-      permissions: { "notes.edit": "deny" },
+      notes: { folders: [], colour: "blue" },
     })
-    expect(JSON.parse(await memo("config", "unset", "default_profile", "--json")).item).toMatchObject({
+    expect(JSON.parse(await wcat("config", "unset", "default_profile", "--json")).item).toMatchObject({
       key: "default_profile",
       removed: false,
     })
   })
 })
 
-describe.skipIf(process.platform === "win32")("memo doctor on files other users can read", () => {
+describe.skipIf(process.platform === "win32")("wcat doctor on files other users can read", () => {
   it("names the config file and its folder with the chmod that fixes each, exits 0, and is clean after", async () => {
     writeConfig(JSON.stringify({ update_check: false }))
     chmodSync(configPath(env), 0o644)
@@ -227,13 +205,13 @@ describe.skipIf(process.platform === "win32")("memo doctor on files other users 
     writeConfig(JSON.stringify({ update_check: false, record: true }))
     chmodSync(configPath(env), 0o644)
 
-    await memo("config", "unset", "record")
+    await wcat("config", "unset", "record")
 
     expect(statSync(configPath(env)).mode & 0o777).toBe(0o600)
   })
 })
 
-describe("memo doctor reports", () => {
+describe("wcat doctor reports", () => {
   it("says what a report holds, and names the run it cannot find", async () => {
     const shown = JSON.parse(await doctor("reports", "show"))
     expect(shown.item.excludes).toContain("the sign-in")
@@ -243,7 +221,7 @@ describe("memo doctor reports", () => {
   })
 })
 
-describe("memo doctor --online", () => {
+describe("wcat doctor --online", () => {
   afterEach(() => vi.unstubAllGlobals())
 
   it("makes no network call without --online", async () => {
@@ -255,14 +233,14 @@ describe("memo doctor --online", () => {
     expect(report.item.online).toBeUndefined()
   })
 
-  it("says whether a newer memo is published", async () => {
+  it("says whether a newer wcat is published", async () => {
     const fetch = vi.fn(async () => Response.json({ version: "999.0.0" }))
     vi.stubGlobal("fetch", fetch)
     const report = JSON.parse(await doctor("--online", "--json"))
 
     expect(fetch).toHaveBeenCalledOnce()
     expect(report.item.online).toMatchObject({ ok: true, version: { latest: "999.0.0", newer: true } })
-    expect(await doctorAtTerminal("--online")).toContain("memo 999.0.0 is published")
+    expect(await doctorAtTerminal("--online")).toContain("wcat 999.0.0 is published")
   })
 
   it("reports an unreachable npm without failing", async () => {
@@ -277,12 +255,12 @@ describe("memo doctor --online", () => {
   })
 })
 
-describe("memo upgrade", () => {
-  it("says in JSON whether npm holds a newer memo, and installs nothing with --check", async () => {
+describe("wcat upgrade", () => {
+  it("says in JSON whether npm holds a newer wcat, and installs nothing with --check", async () => {
     const asked = vi.fn(async () => new Response(JSON.stringify({ version: "99.0.0" })))
     vi.stubGlobal("fetch", asked)
     try {
-      const answer = JSON.parse(await memo("upgrade", "--check", "--json"))
+      const answer = JSON.parse(await wcat("upgrade", "--check", "--json"))
       expect(answer.item).toMatchObject({ latest: "99.0.0", newer: true, updated: false })
       expect(asked).toHaveBeenCalledOnce()
     } finally {
@@ -295,11 +273,11 @@ describe("the update notice", () => {
   const environment = {
     fetch: async () => new Response(JSON.stringify({ version: "99.0.0" })),
     stderrIsTTY: true,
-    scriptPath: "/usr/lib/node_modules/@wirecat/cli-memo/dist/bin/memo.js",
+    scriptPath: "/usr/lib/node_modules/@wirecat/wirecat/dist/bin/wcat-wirecat.js",
     now: () => 1_800_000_000_000,
   }
 
-  it("says a newer memo exists and how to get it, asking npm once a day", async () => {
+  it("says a newer wcat exists and how to get it, asking npm once a day", async () => {
     let asked = 0
     const counting = {
       ...environment,
@@ -313,7 +291,7 @@ describe("the update notice", () => {
     await updateNotice(["search", "budget"], { tty: true, env, environment: counting })
 
     expect(line).toMatch(/99\.0\.0/)
-    expect(line).toContain("memo upgrade")
+    expect(line).toContain("wcat upgrade")
     expect(asked).toBe(1)
   })
 
@@ -321,20 +299,20 @@ describe("the update notice", () => {
     expect(await updateNotice(["search", "budget", "--json"], { tty: true, env, environment })).toBeUndefined()
     expect(await updateNotice(["search", "budget", "--json=ref"], { tty: true, env, environment })).toBeUndefined()
     expect(await updateNotice(["search", "budget"], { tty: false, env, environment })).toBeUndefined()
-    expect(await updateNotice(["sync"], { tty: true, env: { ...env, MEMO_AUTO: "1" }, environment })).toBeUndefined()
+    expect(await updateNotice(["sync"], { tty: true, env: { ...env, WCAT_AUTO: "1" }, environment })).toBeUndefined()
     updateConfig(() => ({ update_check: false }), env)
     expect(await updateNotice(["search", "budget"], { tty: true, env, environment })).toBeUndefined()
   })
 })
 
-describe("memo doctor --deep", () => {
+describe("wcat doctor --deep", () => {
   it("reads every page of the store and every search index, and says the store is whole", async () => {
     const { openStore } = await import("@wirecat/cli-core/store")
     await (await openStore({ env })).close()
     const report = JSON.parse(await doctor("--deep", "--json"))
     expect(report.item.store.health).toMatchObject({ checked: "deep", ok: true })
     expect(report.item.store.damage).toBeUndefined()
-    const recover = JSON.parse(await memo("store", "recover", "--json"))
+    const recover = JSON.parse(await wcat("store", "recover", "--json"))
     expect(recover.item).toMatchObject({ exists: true, ok: true, next: [] })
   })
 
@@ -348,7 +326,7 @@ describe("memo doctor --deep", () => {
     mkdirSync(bin)
     writeFileSync(join(bin, "systemctl"), "#!/bin/sh\n", { mode: 0o755 })
     vi.stubEnv("PATH", `${bin}:${process.env.PATH}`)
-    const ran = JSON.parse(await memo("store", "recover", "run", "--json"))
+    const ran = JSON.parse(await wcat("store", "recover", "run", "--json"))
     expect(ran.item).toMatchObject({
       checked_ok: true,
       lost: [],

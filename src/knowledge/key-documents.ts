@@ -33,7 +33,7 @@ export const projectOf = async (store: MessageStore, reference: string): Promise
   } catch (error) {
     if (!(error instanceof CliError) || error.code !== "not_found") throw error
   }
-  throw new CliError("not_found", `no project ${reference}; memo projects list shows them`, {
+  throw new CliError("not_found", `no project ${reference}; wcat projects list shows them`, {
     reason: "project.not-found",
   })
 }
@@ -108,12 +108,12 @@ export const markKey = async (
   if (!isKey(link))
     throw new CliError(
       "validation_error",
-      `${ref} already relates to ${project.ref} as something else; memo relationships remove ${link.id} first`,
+      `${ref} already relates to ${project.ref} as something else; wcat relationships remove ${link.id} first`,
     )
   return describe(store, link)
 }
 
-/** An agent's mark is a `key_document` proposal the owner decides in memo review; the same pending one is reused. */
+/** An agent's mark is a `key_document` proposal the owner decides in wcat review; the same pending one is reused. */
 const proposeKey = async (
   store: MessageStore,
   project: Project,

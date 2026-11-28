@@ -1,9 +1,9 @@
 import type { OrganizationContext } from "@wirecat/cli-core/services"
 import { timezone } from "../answer.js"
 import { touchLine } from "../context/command.js"
-import type { NotesAbout } from "../notes/about.js"
 import { coverageLines, sectionLines } from "./business-text.js"
 import { moneyLines } from "./money-text.js"
+import type { NotesAbout } from "./notes-about.js"
 
 export const organizationText = (answer: OrganizationContext & { notes: NotesAbout; tags: string[] }): string => {
   const { organization, categories, communications } = answer

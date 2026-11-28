@@ -10,8 +10,13 @@ import { createProgram } from "../program.js"
 const DAY = 86_400_000
 
 const setUp = async () => {
-  const dir = mkdtempSync(join(tmpdir(), "memo-documents-"))
-  const env: NodeJS.ProcessEnv = { ...process.env, MESSAGING_STORE: join(dir, "s.db"), MEMO_CONFIG_DIR: dir }
+  const dir = mkdtempSync(join(tmpdir(), "wcat-documents-"))
+  const env: NodeJS.ProcessEnv = {
+    ...process.env,
+    MESSAGING_STORE: join(dir, "s.db"),
+    WCAT_CONFIG_DIR: dir,
+    FILES_CONFIG_DIR: join(dir, "files"),
+  }
   delete env.AI_AGENT
   delete env.CLAUDECODE
   const store = await openStore({ path: join(dir, "s.db") })
@@ -42,7 +47,12 @@ it("lists the documents of every account, narrows them, shows one and gives the 
   const f = await setUp()
   const notes = join(f.dir, "notes")
   mkdirSync(notes)
-  await f.run("folders", "update", f.folder, notes)
+  // Where a folder is on this computer is the files CLI's to know.
+  mkdirSync(join(f.dir, "files"))
+  writeFileSync(
+    join(f.dir, "files", "config.json"),
+    JSON.stringify({ notes: { folders: [{ id: f.folder, path: notes }] } }),
+  )
   const all = (await f.json("documents", "list")) as {
     items: { ref: string; kind: string; folder: string | null; local_path: string | null; source: { source: string } }[]
     page: { total?: { value: number }; has_more: boolean }

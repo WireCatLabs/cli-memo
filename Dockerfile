@@ -2,6 +2,6 @@
 # the profile name is made up and the home folder is empty.
 FROM node:24-slim
 # hadolint ignore=DL3016
-RUN npm install -g @wirecat/cli-memo && npm cache clean --force
+RUN npm install -g @wirecat/wirecat && npm cache clean --force
 USER node
-CMD ["memo", "mcp", "serve"]
+CMD ["wcat", "mcp", "serve"]

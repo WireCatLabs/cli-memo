@@ -218,7 +218,7 @@ const itemCommands = (
         return { answer, notes: crmNotes(store) }
       })
       if (answer.deal.kind !== kind)
-        throw new CliError("validation_error", `${ref} is a ${answer.deal.kind} — memo ${answer.deal.kind}s context`)
+        throw new CliError("validation_error", `${ref} is a ${answer.deal.kind} — wcat ${answer.deal.kind}s context`)
       print(
         options.json,
         shortenedBy(notes, itemAnswer(options.brief ? dealBrief(answer) : answer)),
@@ -394,7 +394,7 @@ const pipelineInGroup = async (store: MessageStore, env: NodeJS.ProcessEnv, refe
   )
 }
 
-/** `memo deals`, `memo leads` and `memo pipelines`: sales pipelines and what is in them. */
+/** `wcat deals`, `wcat leads` and `wcat pipelines`: sales pipelines and what is in them. */
 export const dealCommands = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
   const { run, print } = answers(program, streams, env)
 
@@ -493,7 +493,7 @@ export const dealCommands = (program: Command, streams: Streams, env: NodeJS.Pro
     output: (body, command) => print(command.opts<{ json?: boolean }>().json, body),
     accounts: async (store) => (await groupScopeOf(store, env))?.accounts,
   })
-  // memo has no global --json; cli-core's builder leaves it to the app.
+  // wcat has no global --json; cli-core's builder leaves it to the app.
   for (const leaf of stages.commands) json(leaf)
   program.addCommand(stages)
 }
@@ -545,5 +545,5 @@ export const dealsText = ({ deals, more }: DealsBlock): string[] =>
           const due = deal.close_date === null ? "" : `, close ${deal.close_date}`
           return `  ${deal.ref} ${deal.title} · ${deal.stage}${money}${due}`
         }),
-        ...(more > 0 ? [`  +${more} more: memo deals list status:open`] : []),
+        ...(more > 0 ? [`  +${more} more: wcat deals list status:open`] : []),
       ]

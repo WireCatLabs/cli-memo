@@ -13,7 +13,7 @@ import { createMemoServer } from "../mcp/server.js"
 import { createProgram } from "../program.js"
 
 const fixture = async () => {
-  const env = { ...process.env, MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "memo-meeting-evidence-")), "s.db") }
+  const env = { ...process.env, MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "wcat-meeting-evidence-")), "s.db") }
   const store = await openStore({ env })
   const project = await store.knowledge.addProject({ name: "Synthetic Port", key: "SYP" })
   await store.knowledge.addVocabularyAlias({ kind: "project", id: project.id }, "Harbour")

@@ -20,7 +20,7 @@ export interface Written {
 
 export const json = (command: Command) => jsonOption(command)
 
-export const PROPOSES = "yours is confirmed at once; an agent's waits as proposed for you in memo review"
+export const PROPOSES = "yours is confirmed at once; an agent's waits as proposed for you in wcat review"
 
 export const choice = <T extends string>(value: string | undefined, allowed: readonly T[], flag: string): T => {
   if (value === undefined || !(allowed as readonly string[]).includes(value))

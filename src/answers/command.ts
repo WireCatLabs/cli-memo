@@ -91,31 +91,31 @@ export const answerEvidence = async (
     generated: true,
     verified: false,
     saved: false,
-    taskAcceptance: "memo tasks add <source> --type <kind>",
+    taskAcceptance: "wcat tasks add <source> --type <kind>",
   }
 }
 
-/** MEMO_MODELS_ANALYSIS_* when set, else the AI model chosen for every tool with `memo models ai set`. */
+/** WCAT_MODELS_ANALYSIS_* when set, else the AI model chosen for every tool with `wcat models ai set`. */
 export const answerModel = (env: NodeJS.ProcessEnv): { target: ModelTarget; key: string | undefined } => {
-  const provider = env.MEMO_MODELS_ANALYSIS_PROVIDER,
-    model = env.MEMO_MODELS_ANALYSIS_MODEL
+  const provider = env.WCAT_MODELS_ANALYSIS_PROVIDER,
+    model = env.WCAT_MODELS_ANALYSIS_MODEL
   if (provider && model)
     return {
       target: {
         provider,
         model,
-        ...(env.MEMO_MODELS_ANALYSIS_BASE_URL ? { baseUrl: env.MEMO_MODELS_ANALYSIS_BASE_URL } : {}),
+        ...(env.WCAT_MODELS_ANALYSIS_BASE_URL ? { baseUrl: env.WCAT_MODELS_ANALYSIS_BASE_URL } : {}),
       },
-      key: env.MEMO_MODEL_API_KEY,
+      key: env.WCAT_MODEL_API_KEY,
     }
   const shared = sharedModel({ app: APP, env })
   if (!shared)
     throw new CliError(
       "configuration_error",
-      "choose a model with memo models ai set, or configure MEMO_MODELS_ANALYSIS_PROVIDER and MEMO_MODELS_ANALYSIS_MODEL",
+      "choose a model with wcat models ai set, or configure WCAT_MODELS_ANALYSIS_PROVIDER and WCAT_MODELS_ANALYSIS_MODEL",
       { reason: "ai.not-set" },
     )
-  return { target: shared.target, key: env.MEMO_MODEL_API_KEY ?? shared.key }
+  return { target: shared.target, key: env.WCAT_MODEL_API_KEY ?? shared.key }
 }
 
 export const askCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv) => {
@@ -135,7 +135,7 @@ export const askCommand = (program: Command, streams: Streams, env: NodeJS.Proce
     .option("--limit <n>", "most evidence items, at most 100", positive, 20)
     .option(
       "--analyze",
-      "call the AI model (memo models ai set, or MEMO_MODELS_ANALYSIS_*) instead of returning evidence",
+      "call the AI model (wcat models ai set, or WCAT_MODELS_ANALYSIS_*) instead of returning evidence",
     )
     .option("--allow-remote", "explicitly consent to sending this evidence to the configured model")
     .option("--json", "print JSON; --json=id,title keeps only those fields")

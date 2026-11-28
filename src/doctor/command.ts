@@ -19,8 +19,7 @@ import { storePath } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { APP } from "../app.js"
 import { inspectConfig } from "../config.js"
-import { noteFolders, overlapping } from "../notes/folders.js"
-import { autoState, lastAutoRun } from "../run/auto.js"
+import { autoState, lastAutoRun, UNIT } from "../run/auto.js"
 import { installer, PACKAGE } from "../update.js"
 import { VERSION } from "../version.js"
 
@@ -44,7 +43,7 @@ const unitPaths = (unit: string): string[] =>
     .map(([, path]) => path?.replace(/\\(["\\])/g, "$1") ?? "")
     .filter((path) => path.startsWith("/"))
 
-/** Everything memo needs, read from this computer only: no mail server, no messenger, no npm. */
+/** Everything wcat needs, read from this computer only: no mail server, no messenger, no npm. */
 export const diagnose = async (env: NodeJS.ProcessEnv, program: Command, { deep = false }: { deep?: boolean } = {}) => {
   const problems: Problem[] = []
   const paths = resolvePaths({ appName: APP.appName, prefix: APP.envPrefix, env })
@@ -57,45 +56,20 @@ export const diagnose = async (env: NodeJS.ProcessEnv, program: Command, { deep 
     dirs: [dirname(configReport.path), ...(env.MESSAGING_STORE ? [] : [dirname(storePath(env))]), runsDirFor(APP, env)],
   })
 
-  const store = await storeSummary(env, { deep, command: "memo", version: APP.version })
-  if ("damage" in store && store.damage) problems.push({ what: store.damage.what, fix: "memo store recover" })
+  const store = await storeSummary(env, { deep, command: "wcat", version: APP.version })
+  if ("damage" in store && store.damage) problems.push({ what: store.damage.what, fix: "wcat store recover" })
   else if ("error" in store && store.error) problems.push({ what: `the store cannot be read: ${store.error}`, fix: "" })
   if ("writable" in store && store.writable === false)
-    problems.push({ what: "the store is from a newer version than this memo", fix: "memo upgrade" })
-
-  const folders = noteFolders(config.notes).map(({ path, id }) => ({
-    path,
-    exists: existsSync(path),
-    bound: id !== null,
-  }))
-  const configured = noteFolders(config.notes)
-  for (const [index, folder] of configured.entries())
-    for (const other of overlapping(configured.slice(index + 1), folder.path))
-      problems.push({
-        what: `the notes folders ${folder.path} and ${other.path} overlap, so the files they share are read twice`,
-        fix: `memo folders remove "${other.path}" (or the other one)`,
-      })
-  for (const folder of folders) {
-    if (!folder.exists)
-      problems.push({
-        what: `the notes folder ${folder.path} is missing`,
-        fix: "connect its disk; if it moved, memo folders update <id> <new path>",
-      })
-    else if (!folder.bound)
-      problems.push({
-        what: `the notes folder ${folder.path} has no folder id`,
-        fix: `memo folders add "${folder.path}"`,
-      })
-  }
+    problems.push({ what: "the store is from a newer version than this wcat", fix: "wcat upgrade" })
 
   if (config.mail !== undefined) {
     const addresses = retiredMailAddresses(config.mail)
     problems.push({
       what:
-        "memo no longer imports mail, so the config's mail settings do nothing; the mail CLI syncs " +
+        "wcat no longer imports mail, so the config's mail settings do nothing; the mail CLI syncs " +
         `${addresses.length ? addresses.join(", ") : "each mailbox"} into the same store (mail <profile> session ` +
         "start --address <address>, then mail <profile> sync), and the mail already stored stays",
-      fix: "memo config unset mail",
+      fix: "wcat config unset mail",
     })
   }
 
@@ -116,7 +90,7 @@ export const diagnose = async (env: NodeJS.ProcessEnv, program: Command, { deep 
     env.XDG_CONFIG_HOME ?? join(env.HOME ?? homedir(), ".config"),
     "systemd",
     "user",
-    "memo-import.service",
+    `${UNIT}.service`,
   )
   const unit = existsSync(unitFile) ? readFileSync(unitFile, "utf8") : undefined
   const runs = unit ? unitPaths(unit) : []
@@ -127,11 +101,11 @@ export const diagnose = async (env: NodeJS.ProcessEnv, program: Command, { deep 
       ? { since: last.failingSince ?? last.at, runs: last.failures ?? 1, reason: last.reason ?? null }
       : null
   if (state.enabled && !unit)
-    problems.push({ what: "the timer is on in the config but not installed", fix: "memo jobs start" })
+    problems.push({ what: "the timer is on in the config but not installed", fix: "wcat jobs start" })
   if (missing.length > 0)
-    problems.push({ what: `the timer runs a program that is gone: ${missing.join(", ")}`, fix: "memo jobs start" })
+    problems.push({ what: `the timer runs a program that is gone: ${missing.join(", ")}`, fix: "wcat jobs start" })
   if (failing)
-    problems.push({ what: `the timer has failed ${failing.runs} runs since ${failing.since}`, fix: "memo jobs status" })
+    problems.push({ what: `the timer has failed ${failing.runs} runs since ${failing.since}`, fix: "wcat jobs status" })
 
   const skills = SKILL_TARGETS.map((target) => {
     const path = skillPath(target, APP.appName, env)
@@ -139,14 +113,13 @@ export const diagnose = async (env: NodeJS.ProcessEnv, program: Command, { deep 
     return { target, path, version }
   })
   if (skills.some(({ version }) => version !== null && version !== VERSION))
-    problems.push({ what: "an installed skill is from another memo version", fix: "memo skill install --for all" })
+    problems.push({ what: "an installed skill is from another wcat version", fix: "wcat skill install --for all" })
 
   return {
-    memo: { version: VERSION, node: process.version, installed_by: installer() },
+    wcat: { version: VERSION, node: process.version, installed_by: installer() },
     state: paths.state,
     cache: paths.cache,
     store,
-    notes: folders,
     search_model: { name: textModel, path: modelDir, present: model },
     timer: { enabled: state.enabled, every: state.every, unit: unit ? unitFile : null, runs, failing },
     skills,
@@ -163,7 +136,7 @@ type Diagnosis = Omit<Awaited<ReturnType<typeof diagnose>>, "fixes"> & {
   online?: { version: { current: string; latest: string | null; newer: boolean } }
 }
 
-const yes = (value: boolean) => (value ? "yes" : "no")
+const _yes = (value: boolean) => (value ? "yes" : "no")
 
 const fileLines = (d: Diagnosis): string[] =>
   d.files.checked
@@ -176,30 +149,29 @@ const onlineLine = ({ version }: NonNullable<Diagnosis["online"]>): string =>
   version.latest === null
     ? "online     npm could not be reached"
     : version.newer
-      ? `online     memo ${version.latest} is published (this is ${version.current}) — memo upgrade`
-      : `online     memo ${version.current} is the newest published`
+      ? `online     wcat ${version.latest} is published (this is ${version.current}) — wcat upgrade`
+      : `online     wcat ${version.current} is the newest published`
 
 export const doctorText = (d: Diagnosis): string =>
   [
-    `memo ${d.memo.version} on Node ${d.memo.node}, installed by ${d.memo.installed_by}`,
+    `wcat ${d.wcat.version} on Node ${d.wcat.node}, installed by ${d.wcat.installed_by}`,
     `config     ${d.config.path}${d.config.found ? "" : " (none yet)"}`,
     `state      ${d.state}`,
     `cache      ${d.cache}`,
     `store      ${d.store.path}${
       !d.store.exists
-        ? " (none yet; the first memo sync makes it)"
+        ? " (none yet; the first wcat sync makes it)"
         : "schema" in d.store
-          ? ` (schema ${d.store.schema}, memo speaks ${d.store.speaks})`
+          ? ` (schema ${d.store.schema}, wcat speaks ${d.store.speaks})`
           : ""
     }`,
     ...("health" in d.store && d.store.health
       ? [
           `health     ${d.store.health.ok ? "ok" : "DAMAGED"}, checked ${d.store.health.covers}${
-            d.store.health.checked === "quick" ? " (memo doctor --deep reads every page)" : ""
+            d.store.health.checked === "quick" ? " (wcat doctor --deep reads every page)" : ""
           }`,
         ]
       : []),
-    ...d.notes.map((f) => `notes      ${f.path} — exists ${yes(f.exists)}, folder id ${yes(f.bound)}`),
     `search     ${d.search_model.name} ${d.search_model.present ? "present" : "not downloaded — search is by words"}`,
     `timer      ${d.timer.enabled ? `on, every ${d.timer.every}` : "off"}`,
     ...d.skills.map((s) => `skill      ${s.path} ${s.version === null ? "(not installed)" : `(${s.version})`}`),
@@ -236,16 +208,16 @@ export const doctorCommand = (): Command =>
       },
       view: (item) => doctorText(item as unknown as Diagnosis),
     }),
-    "memo has no global --json, so doctor takes its own, and --deep reads every page of memo's store.",
+    "wcat has no global --json, so doctor takes its own, and --deep reads every page of wcat's store.",
     (command) => {
       command
         .option("--deep", DOCTOR_DEEP_OPTION)
         .option("--json", "print JSON; --json=id,title keeps only those fields")
         .addHelpText(
           "after",
-          "\nReads this computer only, unless --online: the config, the store, the notes folders, the search " +
+          "\nReads this computer only, unless --online: the config, the store, the search " +
             "model, the timer and the agent skill, each problem with the command that fixes it. --online also asks " +
-            "npm whether a newer memo is published, and nothing else leaves this computer. Exits 1 when something " +
+            "npm whether a newer wcat is published, and nothing else leaves this computer. Exits 1 when something " +
             "other than the config file or a file mode needs attention; problems in the config file are listed in " +
             "config.issues, and files or folders other users can read in files.problems, and neither changes the exit " +
             "code.",

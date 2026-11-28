@@ -114,7 +114,7 @@ export const digestCommand = (program: Command, streams: Streams, env: NodeJS.Pr
         "today's runs cost the schedule's daily cap or a run fails, and only you run it, never an agent. The store " +
         "keeps what holds now, so a chat answered since reads as answered",
     )
-    .argument("[digest]", `the digest's name, as \`memo digest list\` shows it; ${DIGEST_SCHEDULE} when left out`)
+    .argument("[digest]", `the digest's name, as \`wcat digest list\` shows it; ${DIGEST_SCHEDULE} when left out`)
     .option("--since-time <time>", "the first day, YYYY-MM-DD")
     .option("--until-time <time>", "the last day, YYYY-MM-DD; not a day whose run time is still ahead")
     // WireCat Desktop before 0.131.73's rename sends these; kept so an older app still builds past days.
@@ -135,14 +135,14 @@ export const digestCommand = (program: Command, streams: Streams, env: NodeJS.Pr
         throw new CliError("validation_error", "--since-time is after --until-time", { param: "--since-time" })
       const digestName = name ?? DIGEST_SCHEDULE
       if (digestName !== DIGEST_SCHEDULE && !isDigest(env, digestName))
-        throw new CliError("not_found", `no digest ${digestName} — \`memo digest list\` names them`, {
+        throw new CliError("not_found", `no digest ${digestName} — \`wcat digest list\` names them`, {
           reason: "digest.not-found",
         })
       const { state, schedule } = digestSchedule(env, digestName)
       if (!schedule)
         throw new CliError(
           "not_found",
-          `no ${digestName} schedule to build from — memo skill show morning-digest says how to make one`,
+          `no ${digestName} schedule to build from — wcat skill show morning-digest says how to make one`,
           { reason: "backfill.no-schedule" },
         )
       const file = scheduleFile(state, schedule.name)

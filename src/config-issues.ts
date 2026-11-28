@@ -9,7 +9,7 @@ const pathOf = (command: Command): string[] => {
 }
 
 /**
- * Memo's permission keys are command paths, plus the MCP server's own `mcp.authority` and the keys that turn a lane of
+ * wcat's permission keys are command paths, plus the MCP server's own `mcp.authority` and the keys that turn a lane of
  * `search all` off, such as `business.list`, as in cli-core: no one command lists that lane.
  */
 export const permissionKeyOf = (command: Command) => pathOf(command).join(".") || null

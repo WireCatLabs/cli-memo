@@ -11,7 +11,7 @@ import { createProgram } from "../program.js"
 const tg = { provider: "telegram", account: "1" }
 
 it("hides a task inbox from the project list unless the query names kind", async () => {
-  const env = { ...process.env, MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "memo-inbox-")), "fixture.db") }
+  const env = { ...process.env, MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "wcat-inbox-")), "fixture.db") }
   const run = async (...args: string[]) => {
     const streams = captureStreams()
     await createProgram({ streams, env })

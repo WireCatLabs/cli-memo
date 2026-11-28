@@ -10,8 +10,8 @@ import { createProgram } from "../program.js"
 const setUp = async () => {
   const env: NodeJS.ProcessEnv = {
     ...process.env,
-    MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "memo-scan-")), "s.db"),
-    MEMO_CONFIG_DIR: mkdtempSync(join(tmpdir(), "memo-scan-config-")),
+    MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "wcat-scan-")), "s.db"),
+    WCAT_CONFIG_DIR: mkdtempSync(join(tmpdir(), "wcat-scan-config-")),
   }
   delete env.AI_AGENT
   delete env.CLAUDECODE
@@ -77,8 +77,8 @@ it("scan lists without --yes, proposes with it, and wants the accounts named", a
 it("names a group's senders, lists them by the group and lets the owner confirm them in one command", async () => {
   const env: NodeJS.ProcessEnv = {
     ...process.env,
-    MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "memo-scan-")), "s.db"),
-    MEMO_CONFIG_DIR: mkdtempSync(join(tmpdir(), "memo-scan-config-")),
+    MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "wcat-scan-")), "s.db"),
+    WCAT_CONFIG_DIR: mkdtempSync(join(tmpdir(), "wcat-scan-config-")),
   }
   delete env.AI_AGENT
   delete env.CLAUDECODE
@@ -145,7 +145,7 @@ it("names a group's senders, lists them by the group and lets the owner confirm 
       chat: "chat:telegram/1/-88",
       title: "Chat «Synthetic sales» (Telegram)",
       people: 2,
-      review: "memo review list via:chat:telegram/1/-88",
+      review: "wcat review list via:chat:telegram/1/-88",
     },
   ])
 

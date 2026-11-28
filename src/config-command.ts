@@ -3,18 +3,18 @@ import { annotate } from "@wirecat/cli-base/commands"
 import { LOCAL_READ, LOCAL_WRITE, settingRows } from "@wirecat/cli-core/cli"
 import type { Command } from "commander"
 import { answers, itemAnswer } from "./answer.js"
-import { configPath, MEMO_SETTINGS, migrateConfig, rawConfig, unsetConfigKey } from "./config.js"
+import { configPath, migrateConfig, rawConfig, unsetConfigKey, WCAT_SETTINGS } from "./config.js"
 
 export const configCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
   const { print } = answers(program, streams, env)
-  const config = program.command("config").description("memo's settings file")
+  const config = program.command("config").description("wcat's settings file")
 
   annotate(config.command("show"), { effects: LOCAL_READ })
     .description("every setting, its value, its default and whether the file sets it")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((options: { json?: boolean }) => {
       const raw = rawConfig(env)
-      const rows = settingRows(raw, MEMO_SETTINGS)
+      const rows = settingRows(raw, WCAT_SETTINGS)
       const values = rows.map((row) => `${JSON.stringify(row.value)}${row.from === "default" ? " (default)" : ""}`)
       const wide = (texts: string[]) => texts.reduce((most, text) => Math.max(most, text.length), 0)
       const [settingWidth, valueWidth] = [wide(rows.map((row) => row.setting)), wide(values)]
@@ -43,12 +43,12 @@ export const configCommand = (program: Command, streams: Streams, env: NodeJS.Pr
     })
 
   annotate(config.command("unset"), { effects: LOCAL_WRITE })
-    .description("remove one setting from the config file, even one memo does not know")
-    .argument("<key>", "the setting's dotted path, as memo doctor names it, e.g. permissions.notes.edit")
+    .description("remove one setting from the config file, even one wcat does not know")
+    .argument("<key>", "the setting's dotted path, as wcat doctor names it, e.g. permissions.notes.edit")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .addHelpText(
       "after",
-      "\nRuns on a file with problems, so the fix memo doctor prints works; a file that is not valid JSON is edited by hand.",
+      "\nRuns on a file with problems, so the fix wcat doctor prints works; a file that is not valid JSON is edited by hand.",
     )
     .action((key: string, options: { json?: boolean }) => {
       const removed = unsetConfigKey(key, env)

@@ -29,10 +29,6 @@
                     "message": "only src/mcp serves MCP; commands and services do not know the protocol"
                   },
                   {
-                    "group": ["yaml"],
-                    "message": "front matter is read by the note dialects; the rest of memo gets parsed notes"
-                  },
-                  {
                     "group": ["@wirecat/cli-core/sqlite-runtime"],
                     "message": "the SQLite runtime is chosen once, at the entry point"
                   }
@@ -52,34 +48,6 @@
               "level": "error",
               "options": {
                 "patterns": [
-                  {
-                    "group": ["yaml"],
-                    "message": "front matter is read by the note dialects; the rest of memo gets parsed notes"
-                  },
-                  {
-                    "group": ["@wirecat/cli-core/sqlite-runtime"],
-                    "message": "the SQLite runtime is chosen once, at the entry point"
-                  }
-                ]
-              }
-            }
-          }
-        }
-      }
-    },
-    {
-      "includes": ["src/notes/dialects/**", "!**/*.test.ts"],
-      "linter": {
-        "rules": {
-          "style": {
-            "noRestrictedImports": {
-              "level": "error",
-              "options": {
-                "patterns": [
-                  {
-                    "group": ["@modelcontextprotocol/**"],
-                    "message": "only src/mcp serves MCP; commands and services do not know the protocol"
-                  },
                   {
                     "group": ["@wirecat/cli-core/sqlite-runtime"],
                     "message": "the SQLite runtime is chosen once, at the entry point"
@@ -103,10 +71,6 @@
                   {
                     "group": ["@modelcontextprotocol/**"],
                     "message": "only src/mcp serves MCP; commands and services do not know the protocol"
-                  },
-                  {
-                    "group": ["yaml"],
-                    "message": "front matter is read by the note dialects; the rest of memo gets parsed notes"
                   }
                 ]
               }

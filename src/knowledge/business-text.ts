@@ -21,7 +21,7 @@ export const sectionLines = <T>(
     : [
         title,
         ...section.items.map(line),
-        ...(section.hasMore ? [`  ${section.total} in all${section.next ? ` — memo ${section.next}` : ""}`] : []),
+        ...(section.hasMore ? [`  ${section.total} in all${section.next ? ` — wcat ${section.next}` : ""}`] : []),
       ]
 
 export const coverageLines = (coverage: Coverage): string[] => [

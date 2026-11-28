@@ -1,6 +1,6 @@
-# How Memo works
+# How wcat works
 
-Know why Memo answers the way it does before you point it at something private. Your notes, mail and messages sit in
+Know why wcat answers the way it does before you point it at something private. Your notes, mail and messages sit in
 one file on your computer, an import never changes the originals, and an agent proposes while you decide.
 
 Each part covers one rule: where the text is kept, what an import does, how links, people and references work, and
@@ -20,19 +20,19 @@ what an agent may do.
 
 ## The local store
 
-Memo keeps everything in one file on your computer, the **local store** (`wirecat.db`). tg, max and wa
-save your Telegram, MAX and WhatsApp messages in the same file, so Memo can answer about messages, mail and
+wcat keeps everything in one file on your computer, the **local store** (`wirecat.db`). tg, max and wa
+save your Telegram, MAX and WhatsApp messages in the same file, so wcat can answer about messages, mail and
 notes together.
 
 | Where it comes from | Who puts it in the local store |
 |---|---|
 | Telegram, MAX and WhatsApp messages | tg, max and wa, when they download your chats |
 | Email | The [mail](https://github.com/WireCatLabs/mail-cli) CLI, with `mail <profile> sync` |
-| Files in your note folders | `memo sync --only notes` or `memo sync` |
-| Your own notes, tags, tasks, memories and facts | Memo, when you or your agent add them |
+| Files in your note folders | `wcat sync --only notes` or `wcat sync` |
+| Your own notes, tags, tasks, memories and facts | wcat, when you or your agent add them |
 
 Imports leave the originals unchanged: your files stay as they are. The local store holds a copy of their text.
-Memo never opens a mailbox: reading it, and cleaning it up, are commands of the separate `mail` program.
+wcat never opens a mailbox: reading it, and cleaning it up, are commands of the separate `mail` program.
 
 ## What an import does
 
@@ -50,21 +50,21 @@ An import reads your note folders and brings the local store up to date.
 - **Search by meaning is prepared.** If the search model is on your computer, the import also
   prepares the new text for search by meaning, the mail `mail` stored included. `--no-embed` skips this step.
 
-Two Memo imports never run at the same time, and one source that fails does not stop the others.
+Two wcat imports never run at the same time, and one source that fails does not stop the others.
 
-An import can be stopped at any time with Ctrl-C or `kill <pid>` (SIGTERM). It stops at the next folder, keeps what it read, and the next `memo sync` continues from there. `--timeout 10m`
+An import can be stopped at any time with Ctrl-C or `kill <pid>` (SIGTERM). It stops at the next folder, keeps what it read, and the next `wcat sync` continues from there. `--timeout 10m`
 stops it the same way after ten minutes; with no `--timeout` it has no time limit.
 
 ## Folders on more than one computer
 
-When you add a folder, Memo gives it an ID (a short number) in the local store. Notes and links use
-that ID, not the folder's path. If you use the same notes on another computer, `memo folders update`
+When you add a folder, wcat gives it an ID (a short number) in the local store. Notes and links use
+that ID, not the folder's path. If you use the same notes on another computer, `files folders update`
 connects the ID to the folder's path there. Because the ID stays the same, the notes keep their
 links and tags.
 
 ## Links between notes and people
 
-When Memo imports a note, it also reads the links in it:
+When wcat imports a note, it also reads the links in it:
 
 - A link to another note in the folder becomes a link to that note.
 - A link to a name, such as `[[Kai Sample]]` in Obsidian, becomes a link to that person as soon as
@@ -73,18 +73,18 @@ When Memo imports a note, it also reads the links in it:
 - A link written as a reference, such as `[Kai](person:7)` or `msg:telegram/1/77/42`, links straight
   to that person or message.
 
-A name in ordinary text is **not** a link. Memo does not guess who a note is about from the words in
+A name in ordinary text is **not** a link. wcat does not guess who a note is about from the words in
 it.
 
 ## One person, several accounts
 
-The same person can have a Telegram account, a MAX account and an email address. Memo treats them as one person
+The same person can have a Telegram account, a MAX account and an email address. wcat treats them as one person
 when they share an exact email address no third person has, or a phone number nobody else has that one of them has
 in Telegram, MAX or WhatsApp, or after you link them with
-`memo people link`, `tg personal contacts link` or `max personal contacts link`. A matching name, username or email
-domain is never enough. An agent's link merges at once only on strong evidence memo finds itself, the same mobile
+`wcat people link`, `tg personal contacts link` or `max personal contacts link`. A matching name, username or email
+domain is never enough. An agent's link merges at once only on strong evidence wcat finds itself, the same mobile
 number or personal address from two sources. A weaker signal, or an agent's guess, waits for you as a match in
-`memo people review`.
+`wcat people review`.
 Every merge can be undone ([how](people.md#undo-a-link)).
 
 ## References
@@ -94,7 +94,7 @@ tag it, write a note about it or use it as evidence.
 
 | Reference | What it points to |
 |---|---|
-| `note:12` | A note you wrote in Memo |
+| `note:12` | A note you wrote in wcat |
 | `document:3` | A file from one of your note folders |
 | `msg:telegram/1/77/42` | One message: the messenger, the account, the chat and the message |
 | `chat:…`, `contact:…` | A chat or a contact in one account |
@@ -108,7 +108,7 @@ different message.
 
 ## Search by words and by meaning
 
-Memo always searches by words: it finds notes, mail and messages that contain every word you typed,
+wcat always searches by words: it finds notes, mail and messages that contain every word you typed,
 including other forms of the word. With the search model on your computer, it also searches by
 meaning, so `holiday` can find a note about a vacation. The model runs on your computer; your text
 is not sent anywhere for this. Each result says how it was found.
@@ -125,11 +125,11 @@ Your agent can add three kinds of records:
 - a **memory**: something concluded, such as a preference;
 - a **fact**: something that happened, such as a decision;
 - a **proposed action**: something to do, such as a reply. It always waits until you approve or
-  reject it. Approving it makes it a task for you. Memo never sends a message or an email.
+  reject it. Approving it makes it a task for you. wcat never sends a message or an email.
 
 Memories and directly recorded facts added through the [MCP server](mcp.md) start as **proposed**.
 MCP command tools can confirm memories, accept facts or approve actions when their saved permissions allow it.
-Each command that reaches Memo’s executor is written to the agent log (`memo agents list`), without the details it sent.
+Each command that reaches wcat’s executor is written to the agent log (`wcat agents list`), without the details it sent.
 
 Project proposals have a separate flow. By default only you decide them; reading and proposing still work.
 Set [`agent_decisions: true`](configuration.md#agent_decisions) to let an agent decide them with a recorded
@@ -137,17 +137,17 @@ reason, creating accepted facts and numbered tasks or confirming a key document.
 only when you set [`meetings.actions.confirm`](configuration.md#permissions) to `ask` or `allow`.
 
 What an agent writes, a fact, memory or relationship, starts as proposed; yours is confirmed or accepted at once.
-Proposed actions always wait for approval. The `memo` command tells who runs it:
+Proposed actions always wait for approval. The `wcat` command tells who runs it:
 
 - An [MCP](mcp.md) call is the agent's.
-- A run in an agent's terminal is the agent's. Memo tells it by `AI_AGENT` or `CLAUDECODE`, the variables agents such
+- A run in an agent's terminal is the agent's. wcat tells it by `AI_AGENT` or `CLAUDECODE`, the variables agents such
   as Claude Code set.
 - With neither, the run is yours only when its input and output are a terminal. A run with no terminal and no agent
   named is recorded as the unattended bot `unattended`, which proposes and never decides.
 
 Two flags make a run yours. In an agent's terminal, `--as-owner` does it only after you answer y at the terminal; under
 `--json` or without a terminal it never asks and refuses with exit 7. WireCat Desktop passes `--from-app` on every
-decision you make in the app, and the run is then yours with no question. Memo takes the app at its word and checks
+decision you make in the app, and the run is then yours with no question. wcat takes the app at its word and checks
 nothing (see [Security](security.md)).
 
 Every confirm, reject and remove path, CLI and MCP alike, checks who decides. An agent decides only with
@@ -157,7 +157,7 @@ lock: an agent that drives a terminal of its own can still answer it.
 
 ## What can leave your computer
 
-Sending sources to an AI provider is opt-in. `memo answers create` prepares sources for your own agent by default. It sends
+Sending sources to an AI provider is opt-in. `wcat answers create` prepares sources for your own agent by default. It sends
 text to an AI provider only when you set one up and add `--analyze`, and to a remote provider only
 with `--allow-remote` as well. What your agent does with the text it reads is up to that agent.
 The daily update check can also make a network request; [Security](security.md)

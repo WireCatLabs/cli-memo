@@ -60,7 +60,7 @@ const CHATS = [
 ]
 
 const setUp = async (profiles: Record<string, AccountKey["account"]> = { work: "11" }) => {
-  const root = mkdtempSync(join(tmpdir(), "memo-status-"))
+  const root = mkdtempSync(join(tmpdir(), "wcat-status-"))
   const maxAccounts = join(root, "max-state", "accounts")
   mkdirSync(maxAccounts, { recursive: true })
   for (const [profile, account] of Object.entries(profiles))

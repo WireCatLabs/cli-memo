@@ -18,7 +18,7 @@ import type { MessageStore } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { answers, itemAnswer, listAnswer, withStore } from "../answer.js"
 import { APP } from "../app.js"
-import { MEMO_ACCOUNT } from "./group.js"
+import { WCAT_ACCOUNT } from "./group.js"
 
 type Scope = "personal" | "work"
 
@@ -37,10 +37,10 @@ const scopeOption = (scope: string, chat: string | undefined): Scope | null => {
 
 const MEMBER_HELP = "one account, as --source names it: telegram:102, tg:work, email:me@work.example, bitrix24:<portal>"
 
-/** memo's own entity: one group and its accounts. */
+/** wcat's own entity: one group and its accounts. */
 const GROUPS_QUERY = { entity: "account_group", backend: "native", fields: [] } as const satisfies QueryRegistry
 
-const at = (store: MessageStore, env: NodeJS.ProcessEnv) => ({ store, account: MEMO_ACCOUNT, app: APP, env })
+const at = (store: MessageStore, env: NodeJS.ProcessEnv) => ({ store, account: WCAT_ACCOUNT, app: APP, env })
 
 export const membershipText = ({ groups, duplicates, suggested, unresolved }: GroupMembership): string =>
   [
@@ -63,12 +63,12 @@ export const membershipText = ({ groups, duplicates, suggested, unresolved }: Gr
   ].join("\n")
 
 /**
- * `memo groups …`: which accounts each group holds (WC-ACCT-13), and the owner's edits of that. cli-core computes the
- * membership and makes each change in one write; memo names its own command words as words no group may take.
+ * `wcat groups …`: which accounts each group holds (WC-ACCT-13), and the owner's edits of that. cli-core computes the
+ * membership and makes each change in one write; wcat names its own command words as words no group may take.
  */
 export const groupsCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
   const { print } = answers(program, streams, env)
-  const groups = program.command("groups").description("account groups: memo <group> … reads only the group's accounts")
+  const groups = program.command("groups").description("account groups: wcat <group> … reads only the group's accounts")
   /** Every answer, a read's or an edit's, is the groups as `groups list` gives them: one row per group. */
   const show = async (
     command: string,
@@ -117,7 +117,7 @@ export const groupsCommand = (program: Command, streams: Streams, env: NodeJS.Pr
   grantsAuthority(annotate(groups.command("add"), { effects: LOCAL_WRITE, output: { entity: "account_group" } }))
     .description("put an account in a group, which is made when it does not exist; it may stay in others too")
     .summary("put an account in a group")
-    .argument("<group>", "the group: letters, digits, - and _, not a memo command word")
+    .argument("<group>", "the group: letters, digits, - and _, not a wcat command word")
     .argument("<source>", MEMBER_HELP)
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((group: string, member: string, options: { json?: boolean }) =>
@@ -157,7 +157,7 @@ export const groupsCommand = (program: Command, streams: Streams, env: NodeJS.Pr
     )
     .summary("rename a group")
     .argument("<group>", "the group")
-    .argument("<name>", "its new name: letters, digits, - and _, not a memo command word")
+    .argument("<name>", "its new name: letters, digits, - and _, not a wcat command word")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((from: string, to: string, options: { json?: boolean }) =>
       show("groups rename", options.json, (store) =>

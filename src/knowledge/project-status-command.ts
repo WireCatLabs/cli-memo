@@ -68,7 +68,7 @@ const linked = (chat: StatusChatSummary) => {
 }
 
 /**
- * The chats to read are in tg, max or wa, which memo cannot run: a step names the command to type, with the profile
+ * The chats to read are in tg, max or wa, which wcat cannot run: a step names the command to type, with the profile
  * signed in to that chat's account, or `<profile>` when there is none or more than one; `blocked` keeps why. It is a
  * command step only while cli-core builds the answer, which keeps `line`; `asAction` hands it out as a user action.
  */

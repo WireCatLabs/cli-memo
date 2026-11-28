@@ -14,7 +14,7 @@ it("pages memories and facts past 500, each row once, newest first; actions and 
     ...process.env,
     AI_AGENT: "",
     CLAUDECODE: "",
-    MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "memo-paging-")), "store.db"),
+    MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "wcat-paging-")), "store.db"),
   }
   const store = await openStore({ env })
   const note = await store.notes.addNote({ text: "Kai Sample prefers mornings" })
@@ -31,7 +31,7 @@ it("pages memories and facts past 500, each row once, newest first; actions and 
   for (const tool of ["memories_list", "facts_list"]) {
     await store.proposedActions.propose({ kind: "reply", by: { bot: "helper" } })
     const call = { tier: "read" as const, status: "ok" as const, startedAt: 1, finishedAt: 2 }
-    await store.agentActions.record({ ...call, actor: { bot: "memo-mcp" }, tool })
+    await store.agentActions.record({ ...call, actor: { bot: "wcat-mcp" }, tool })
   }
   await store.close()
   const run = async (...args: string[]) => {

@@ -40,9 +40,14 @@ const QUERY = {
   fields: [termField("type", "enum", "type:promotion", { values: [...MAIL_TYPES] })],
 } as const satisfies QueryRegistry
 
-export const mailSubscriptionsCommand = (mail: Command, program: Command, streams: Streams, env: NodeJS.ProcessEnv) => {
+export const mailSubscriptionsCommand = (
+  review: Command,
+  program: Command,
+  streams: Streams,
+  env: NodeJS.ProcessEnv,
+) => {
   const { print } = answers(program, streams, env)
-  const subscriptions = mail
+  const subscriptions = review
     .command("subscriptions")
     .description(
       "what is sent to you and you may leave: broadcast mail grouped by its list (List-Id), else by its sender. Not " +
@@ -65,7 +70,7 @@ export const mailSubscriptionsCommand = (mail: Command, program: Command, stream
     .option("--page <n>", "which page, from 1", positive, 1)
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(async (words: string[], options: { source?: string; limit: number; page: number; json?: boolean }) => {
-      const type = queryTerms(words, QUERY, "mail subscriptions list").get("type") as MailType | undefined
+      const type = queryTerms(words, QUERY, "review subscriptions list").get("type") as MailType | undefined
       const limit = Math.min(options.limit, 500)
       const group = groupOf(env)
       const found = await withStore(env, async (store) => {
@@ -85,7 +90,7 @@ export const mailSubscriptionsCommand = (mail: Command, program: Command, stream
       const items = found.items.map(subscriptionRow)
       print(
         options.json,
-        listAnswer("mail subscriptions list", {
+        listAnswer("review subscriptions list", {
           items,
           limit,
           has_more: found.hasMore,

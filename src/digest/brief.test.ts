@@ -7,8 +7,8 @@ import { createProgram } from "../program.js"
 import { BRIEF_LIMIT } from "./brief.js"
 
 const fixture = (extra: NodeJS.ProcessEnv = {}) => {
-  const root = mkdtempSync(join(tmpdir(), "memo-brief-"))
-  const env = { ...process.env, MESSAGING_STORE: join(root, "store.db"), MEMO_STATE_DIR: join(root, "state"), ...extra }
+  const root = mkdtempSync(join(tmpdir(), "wcat-brief-"))
+  const env = { ...process.env, MESSAGING_STORE: join(root, "store.db"), WCAT_STATE_DIR: join(root, "state"), ...extra }
   let streams = captureStreams()
   const run = (...args: string[]) => {
     streams = captureStreams()
@@ -72,7 +72,7 @@ it("shows the brief with its history, puts back the previous one with --undo, an
 })
 
 it("writes the brief in the editor", async () => {
-  const script = join(mkdtempSync(join(tmpdir(), "memo-editor-")), "editor.mjs")
+  const script = join(mkdtempSync(join(tmpdir(), "wcat-editor-")), "editor.mjs")
   writeFileSync(script, 'import { writeFileSync } from "node:fs"\nwriteFileSync(process.argv[2], "From the editor")\n')
   const { run, out } = fixture({ EDITOR: `node ${script}` })
   await run("digest", "brief", "edit")
@@ -89,7 +89,7 @@ it("refuses a brief over the limit and saves nothing", async () => {
   expect(JSON.parse(out()).item.body).toBeNull()
 })
 
-it("refuses a change from an agent and under MEMO_READ_ONLY, and still shows the brief", async () => {
+it("refuses a change from an agent and under WCAT_READ_ONLY, and still shows the brief", async () => {
   const agent = fixture({ AI_AGENT: "claude-code" })
   await expect(agent.run("digest", "brief", "edit", "--file", agent.file("b.md", "x"))).rejects.toMatchObject({
     code: "permission_error",
@@ -97,10 +97,10 @@ it("refuses a change from an agent and under MEMO_READ_ONLY, and still shows the
   })
   await expect(agent.run("digest", "brief", "reset")).rejects.toMatchObject({ code: "permission_error" })
 
-  const locked = fixture({ MEMO_READ_ONLY: "1" })
+  const locked = fixture({ WCAT_READ_ONLY: "1" })
   await expect(locked.run("digest", "brief", "edit", "--file", locked.file("b.md", "x"))).rejects.toMatchObject({
     code: "permission_error",
-    message: expect.stringContaining("MEMO_READ_ONLY"),
+    message: expect.stringContaining("WCAT_READ_ONLY"),
   })
   await locked.run("digest", "brief", "show")
   expect(locked.out()).toContain("No brief")

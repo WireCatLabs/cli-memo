@@ -17,7 +17,7 @@ import {
 } from "@wirecat/cli-core/services"
 import type { AccountKey, MessageStore, PersonRecord } from "@wirecat/cli-core/store"
 import type { Link, Note, RelationListItem } from "@wirecat/cli-core/store/areas"
-import { holdsFolder, type NotesAbout, notesAbout } from "../notes/about.js"
+import { holdsFolder, type NotesAbout, notesAbout } from "../knowledge/notes-about.js"
 import { withOwner } from "../people/owner.js"
 import { crmViewersAll, crmViewingAll } from "../store/crm-viewer.js"
 import { groupScopeOf, inGroup, scopedAccounts } from "../store/group.js"
@@ -47,7 +47,7 @@ export interface MemoContext {
   meetings: PersonContext["meetings"]
   /** Notes linked to them: file notes about them, notes linking them or a note about them. */
   notes: Omit<NotesAbout, "subject" | "name">
-  /** What you wrote about them here (`memo notes add --subject`). */
+  /** What you wrote about them here (`wcat notes add --subject`). */
   yourNotes: Pick<Note, "id" | "ref" | "text" | "revision" | "updatedAt">[]
   /** Sources that gave nothing, and why. */
   notRead: { source: string; reason: string }[]
@@ -238,10 +238,10 @@ interface Read {
   coverage?: Coverage
 }
 
-/** What memo adds to cli-core's context of a person: the notes, tasks and files linked to them. */
+/** What wcat adds to cli-core's context of a person: the notes, tasks and files linked to them. */
 const withNotesAndTasks = async (
   store: MessageStore,
-  env: NodeJS.ProcessEnv,
+  _env: NodeJS.ProcessEnv,
   { messages, events, meetings, business, coverage }: Read,
   {
     accounts,
@@ -270,7 +270,7 @@ const withNotesAndTasks = async (
   if ((await store.notes.folders()).length + (await store.notes.documentsAccounts()).length === 0)
     notRead.push({
       source: "notes",
-      reason: "no folder of notes — memo folders add <path>, then memo sync --only notes",
+      reason: "no folder of notes — wcat folders add <path>, then wcat sync --only notes",
     })
   if (!messages.person.identities.some((identity) => identity.provider === "email"))
     notRead.push({

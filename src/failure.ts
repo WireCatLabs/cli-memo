@@ -46,7 +46,7 @@ const commandOf = (program: Command | undefined, args: readonly string[]) => {
     path.push(child.name())
     at = child
   }
-  return { name: path.join(" ") || "memo", command: path.length ? at : undefined }
+  return { name: path.join(" ") || "wcat", command: path.length ? at : undefined }
 }
 
 /** Parse failures reach the handler as `CommanderError` instead of Commander's own text and exit. */

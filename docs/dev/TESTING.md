@@ -23,12 +23,12 @@ lines in every file. A change that falls below it gets a test, not a lower numbe
 ## Contracts
 
 `contracts/` holds the offline contracts that full validation runs: `pnpm contracts:check` (help, discovery, errors
-and the MCP tool list), `pnpm contracts:upgrade` (a note written by the last published memo is read by this build)
+and the MCP tool list), `pnpm contracts:upgrade` (a note written by the last published wcat is read by this build)
 and `pnpm security:no-leak`. Update a snapshot only on purpose: `pnpm exec cli-contract contracts/plan.json --update`.
 
 ## Shared meeting grammar and lint
 
-Memo mounts cli-core's complete meeting search grammar, as zm does. The shared vocabulary does not yet name
+wcat mounts cli-core's complete meeting search grammar, as zm does. The shared vocabulary does not yet name
 its `--meeting-id`, `--identity-id`, `--person-id`, `--series-id` or `--tag` roles, and reserves `--topic <id>`
 for messenger topics while meeting search uses named knowledge topics. The command lint baselines match zm's
 existing exceptions for these shared flags. Keep the parsers aligned; resolve their shared vocabulary in
@@ -48,6 +48,6 @@ validation.
 
 `pnpm build` compiles `src/` with `tsc`, then cli-base's `cli-dev bundle`
 ([WC-LAY-10](https://github.com/WireCatLabs/cli-base/blob/main/docs/standards/layout.md))
-bundles `dist/bin/memo.js` into `dist/bundle/` and makes the bin a loader. The vitest suite runs
+bundles `dist/bin/wcat-wirecat.js` into `dist/bundle/` and makes the bin a loader. The vitest suite runs
 against `src/`, so `scripts/smoke-bundle.ts` is the proof the bundle works: `pnpm smoke:node` runs it
 under Node and `pnpm smoke:bun` under Bun, both in CI.

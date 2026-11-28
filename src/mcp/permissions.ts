@@ -58,7 +58,7 @@ export const refuseUnknownPermissions = (env: NodeJS.ProcessEnv, program: Comman
   loadConfig(env)
   const { issues } = inspectConfig(env, program)
   if (issues.length > 0)
-    throw new CliError("configuration_error", issueMessage(issues, "memo doctor"), { permission: issues[0]?.key })
+    throw new CliError("configuration_error", issueMessage(issues, "wcat doctor"), { permission: issues[0]?.key })
   const known = memoPermissionKeys(program)
   const key = overrides.map((entry) => entry.split("=")[0] ?? "").find((one) => !known.has(one))
   if (key !== undefined)
@@ -66,7 +66,7 @@ export const refuseUnknownPermissions = (env: NodeJS.ProcessEnv, program: Comman
 }
 
 export const mcpOwnerAllowed = (env: NodeJS.ProcessEnv, key: string): boolean => {
-  if (env.AI_AGENT !== "memo-mcp" || readOnly(env)) return false
+  if (env.AI_AGENT !== "wcat-mcp" || readOnly(env)) return false
   const level = levelFor(memoLevels(env), key, { [key]: "deny" }).level
   return level === "ask" || level === "allow"
 }

@@ -19,8 +19,8 @@ interface Shown {
 
 /** A temp store with an invoice and a lead the owner wrote at the terminal. Synthetic data only. */
 const ownerStore = async () => {
-  const dir = mkdtempSync(join(tmpdir(), "memo-show-gate-"))
-  const env: NodeJS.ProcessEnv = { ...process.env, MESSAGING_STORE: join(dir, "s.db"), MEMO_CONFIG_DIR: dir }
+  const dir = mkdtempSync(join(tmpdir(), "wcat-show-gate-"))
+  const env: NodeJS.ProcessEnv = { ...process.env, MESSAGING_STORE: join(dir, "s.db"), WCAT_CONFIG_DIR: dir }
   delete env.AI_AGENT
   delete env.CLAUDECODE
   const store = await openStore({ env })
@@ -60,14 +60,14 @@ const shown = async (env: NodeJS.ProcessEnv, refs: string[], overrides: string[]
   }
 }
 
-it("shows an agent an invoice and a lead, and the memo command that opens each", async () => {
+it("shows an agent an invoice and a lead, and the wcat command that opens each", async () => {
   const env = await ownerStore()
   const found = await shown(env, ["invoice:1", "lead:1"])
-  expect(found.items?.map((one) => one.open.line)).toEqual(["memo invoices show invoice:1", "memo leads show lead:1"])
+  expect(found.items?.map((one) => one.open.line)).toEqual(["wcat invoices show invoice:1", "wcat leads show lead:1"])
   expect(found.items?.[0]?.title).toContain("ZANZI-902")
 })
 
-it("refuses memo show of an invoice to a server that denies invoices, and shows the rest", async () => {
+it("refuses wcat show of an invoice to a server that denies invoices, and shows the rest", async () => {
   const env = await ownerStore()
   for (const key of ["invoices", "invoices.show"]) {
     const refused = await shown(env, ["lead:1", "invoice:1"], [`${key}=deny`])
@@ -80,7 +80,7 @@ it("refuses memo show of an invoice to a server that denies invoices, and shows 
   expect((await shown(env, ["lead:1"], ["invoices=deny"])).items?.map((one) => one.ref)).toEqual(["lead:1"])
 })
 
-it("refuses memo show of a lead denied in the config file", async () => {
+it("refuses wcat show of a lead denied in the config file", async () => {
   const env = await ownerStore()
   updateConfig((config) => ({ ...config, permissions: { leads: "deny" } }), env)
   expect(await shown(env, ["lead:1"])).toMatchObject({
@@ -90,7 +90,7 @@ it("refuses memo show of a lead denied in the config file", async () => {
 })
 
 // Many stores and MCP calls in one test: over 5 s on a busy CI runner under coverage, about 1 s here.
-it("refuses memo show of a product, contract, subscription, wallet or transaction whose own command is denied", async () => {
+it("refuses wcat show of a product, contract, subscription, wallet or transaction whose own command is denied", async () => {
   const f = await businessStore("show-gate-business")
   const refOf = async (...args: string[]) => (await f.item(OWNER, ...args)).ref as string
   const wallet = await refOf("wallets", "add", "Main account", "RUB")
@@ -126,7 +126,7 @@ it("refuses memo show of a product, contract, subscription, wallet or transactio
   }
   const opened = await shown(f.env, Object.values(refs))
   expect(opened.items?.map((one) => one.open.line)).toEqual(
-    Object.entries(refs).map(([group, ref]) => `memo ${group} show ${ref}`),
+    Object.entries(refs).map(([group, ref]) => `wcat ${group} show ${ref}`),
   )
   for (const [group, ref] of Object.entries(refs))
     expect(await shown(f.env, [ref], [`${group}=deny`])).toMatchObject({

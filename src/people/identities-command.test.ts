@@ -22,12 +22,12 @@ const MAX = { provider: "max", account: "2" }
 let env: NodeJS.ProcessEnv
 
 beforeEach(async () => {
-  const dir = mkdtempSync(join(tmpdir(), "memo-people-identities-"))
+  const dir = mkdtempSync(join(tmpdir(), "wcat-people-identities-"))
   env = {
     ...process.env,
     MESSAGING_STORE: join(dir, "messages.db"),
-    MEMO_CONFIG_DIR: join(dir, "config"),
-    MEMO_STATE_DIR: join(dir, "state"),
+    WCAT_CONFIG_DIR: join(dir, "config"),
+    WCAT_STATE_DIR: join(dir, "state"),
   }
   delete env.AI_AGENT
   delete env.CLAUDECODE
@@ -52,7 +52,7 @@ const raw = async (agent: Record<string, string>, terminal: Terminal, ...args: s
 const run = async (agent: Record<string, string>, terminal: Terminal, ...args: string[]) =>
   answerOf(await raw(agent, terminal, ...args, "--json"))
 
-describe("memo people link", () => {
+describe("wcat people link", () => {
   it("links for the owner, and people show lists both identities and the merge", async () => {
     const linked = await run({}, OWNER, "people", "link", "max:33", "telegram:11")
 
@@ -65,7 +65,7 @@ describe("memo people link", () => {
     expect(shown.merges).toMatchObject([{ method: "manual", by: "owner" }])
   })
 
-  it("from an agent waits as a match, and only the owner confirms it in memo review", async () => {
+  it("from an agent waits as a match, and only the owner confirms it in wcat review", async () => {
     await expect(run(CLAUDE, NOBODY, "people", "link", "max:33", "telegram:11")).rejects.toMatchObject({
       details: { reason: "proposal.reason-required" },
     })
@@ -109,7 +109,7 @@ describe("an agent's people link on strong evidence (NEED-2649)", () => {
     expect(shown.merges[0].agent.run).toEqual(expect.any(String))
     const listed = envelopeOf(await raw({}, OWNER, "people", "review", "--kind", "merged", "--json"))
     expect(listed.items).toMatchObject([
-      { id: merged.merge, kind: "agent_merge", by: "claude-code", undo: `memo people unmerge ${merged.merge}` },
+      { id: merged.merge, kind: "agent_merge", by: "claude-code", undo: `wcat people unmerge ${merged.merge}` },
     ])
     expect(envelopeOf(await raw({}, OWNER, "people", "review", "--json")).items).toEqual([])
 
@@ -164,7 +164,7 @@ describe("an agent's people link on strong evidence (NEED-2649)", () => {
   })
 })
 
-describe("memo people review", () => {
+describe("wcat people review", () => {
   it("says has_more when --limit cuts the list, and people show names the people as they are now", async () => {
     await run(CLAUDE, NOBODY, "people", "link", "max:33", "telegram:11", "--reason", "same face")
     await run(CLAUDE, NOBODY, "people", "link", "max:33", "max:22", "--reason", "same voice")
@@ -389,7 +389,7 @@ describe("the owner's separations", () => {
   })
 })
 
-describe("memo people confirm and reject", () => {
+describe("wcat people confirm and reject", () => {
   it("all shows what it would do until --yes, then answers every listed proposal", async () => {
     await run(CLAUDE, NOBODY, "people", "link", "max:33", "telegram:11", "--reason", "same face")
     await run(CLAUDE, NOBODY, "people", "link", "max:33", "max:22", "--reason", "same voice")
@@ -430,7 +430,7 @@ describe("memo people confirm and reject", () => {
   })
 })
 
-describe("memo people links check", () => {
+describe("wcat people links check", () => {
   it("names a person with two names and nothing in common, and people show person:me is the owner", async () => {
     const store = await openStore({ env })
     await store.accounts.saveAccount(TG, { name: null })
@@ -553,8 +553,8 @@ describe("memo people links check", () => {
   })
 })
 
-describe("memo people scan", () => {
-  it("joins the two people a phone names, and memo sync --only people runs the same pass", async () => {
+describe("wcat people scan", () => {
+  it("joins the two people a phone names, and wcat sync --only people runs the same pass", async () => {
     const scan = await run({}, NOBODY, "people", "scan")
 
     expect(scan.merged).toMatchObject([{ signal: "same-phone" }])
@@ -563,7 +563,7 @@ describe("memo people scan", () => {
     expect(synced.people).toEqual({ merged: 0, proposed: 0, skipped: 0 })
   })
 
-  it("points memo sync's text at people review", async () => {
+  it("points wcat sync's text at people review", async () => {
     const store = await openStore({ env })
     await store.people.savePeople({ provider: "bitrix24", account: "acme" }, [
       { id: "c1", name: "Kai B", phone: "+7 900 555-00-00" },
@@ -573,7 +573,7 @@ describe("memo people scan", () => {
     ])
     await store.close()
 
-    expect(await raw({}, NOBODY, "sync", "--only", "people")).toContain("memo people review")
+    expect(await raw({}, NOBODY, "sync", "--only", "people")).toContain("wcat people review")
   })
 })
 
@@ -584,7 +584,7 @@ describe("over MCP", () => {
     const client = new Client({ name: "fixture", version: "0" })
     await client.connect(clientSide)
     try {
-      const catalogue = await client.callTool({ name: "memo_tools_search", arguments: {} })
+      const catalogue = await client.callTool({ name: "wcat_tools_search", arguments: {} })
       const names = (catalogue.structuredContent as { items: { command: string }[] }).items.map(
         ({ command }) => command,
       )

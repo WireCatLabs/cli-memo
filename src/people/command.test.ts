@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs"
+import { mkdtempSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { captureStreams } from "@wirecat/cli-base"
@@ -23,7 +23,6 @@ const message = (id: string, senderId: string, senderName: string): Message => (
 })
 
 let env: NodeJS.ProcessEnv
-let vault: string
 
 const run = async (...args: string[]) => {
   const streams = captureStreams()
@@ -36,12 +35,9 @@ beforeEach(async () => {
   env = {
     ...process.env,
     MESSAGING_STORE: join(dir, "messages.db"),
-    MEMO_CONFIG_DIR: join(dir, "config"),
-    MEMO_STATE_DIR: join(dir, "state"),
+    WCAT_CONFIG_DIR: join(dir, "config"),
+    WCAT_STATE_DIR: join(dir, "state"),
   }
-  vault = join(dir, "vault")
-  mkdirSync(join(vault, "people"), { recursive: true })
-  writeFileSync(join(vault, "people", "Rin Example.md"), "Works on the lighthouse.\n")
   const store = await openStore({ env })
   const tg = { provider: "telegram", account: "1" }
   const mail = { provider: "email", account: "owner@example.test" }
@@ -52,87 +48,7 @@ beforeEach(async () => {
   await store.close()
 })
 
-describe("memo note", () => {
-  it("asks for the messenger when a reference has none", async () => {
-    await expect(run("notes", "links", "show", "Rin Example")).rejects.toThrow("names no messenger")
-  })
-
-  it("refuses a name two people share", async () => {
-    await expect(run("notes", "links", "add", "telegram:Kai Sample", join(vault, "kai.md"))).rejects.toThrow(
-      "matches 2 people",
-    )
-  })
-
-  it("keeps the note for the person, whichever of their identities names them", async () => {
-    const store = await openStore({ env })
-    await store.people.linkIdentities(
-      { provider: "telegram", id: "101" },
-      { provider: "email", id: "rin@example.test" },
-      { method: "manual", by: "owner" },
-    )
-    await store.close()
-    await run("folders", "add", vault)
-    await run("sync", "--only", "notes")
-
-    await run("notes", "links", "add", "telegram:101", join(vault, "people", "Rin Example.md"), "--json")
-
-    expect(await run("notes", "links", "show", "email:rin@example.test")).toBe(
-      `Rin Example: ${join(vault, "people", "Rin Example.md")}\n`,
-    )
-    expect(JSON.parse(await run("notes", "links", "show", "email:rin@example.test", "--json=files"))).toMatchObject({
-      item: { files: [join(vault, "people", "Rin Example.md")] },
-    })
-    expect(await run("notes", "links", "clear", "email:rin@example.test")).toBe("Rin Example: no note\n")
-    expect(JSON.parse(await run("notes", "links", "clear", "email:rin@example.test", "--json"))).toMatchObject({
-      item: { files: [] },
-    })
-  })
-
-  it("links and clears for the owner under --from-app from an agent's terminal, and refuses the agent without it", async () => {
-    await run("folders", "add", vault)
-    await run("sync", "--only", "notes")
-    const agent = async (...args: string[]) => {
-      const streams = captureStreams()
-      await createProgram({ streams, env: { ...env, AI_AGENT: "claude-code" }, terminal: { present: false } })
-        .exitOverride()
-        .parseAsync([...args, "--json"], { from: "user" })
-      return JSON.parse(streams.stdout.join("")).item
-    }
-    const file = join(vault, "people", "Rin Example.md")
-    const refused = { details: { reason: "proposal.reason-required" } }
-    await expect(agent("notes", "links", "add", "telegram:101", file)).rejects.toMatchObject(refused)
-    expect(await agent("notes", "links", "add", "telegram:101", file, "--from-app")).toMatchObject({ files: [file] })
-    await expect(agent("notes", "links", "clear", "telegram:101")).rejects.toMatchObject(refused)
-    expect(await agent("notes", "links", "clear", "telegram:101", "--from-app")).toMatchObject({ files: [] })
-  })
-
-  it("moves the old people-notes.json into the store once the note is imported", async () => {
-    const store = await openStore({ env })
-    const uid = (await store.people.personOf({ provider: "telegram", id: "101" }))?.uid as string
-    await store.close()
-    mkdirSync(env.MEMO_CONFIG_DIR as string, { recursive: true })
-    writeFileSync(
-      join(env.MEMO_CONFIG_DIR as string, "people-notes.json"),
-      JSON.stringify({
-        [uid]: join(vault, "people", "Rin Example.md"),
-        "01JOLDSTOREPERSON0000000000": join(vault, "people", "Rin Example.md"),
-      }),
-    )
-    await run("folders", "add", vault)
-    expect(await run("notes", "links", "show", "telegram:101")).toBe("Rin Example: no note\n")
-
-    await run("sync", "--only", "notes")
-
-    expect(await run("notes", "links", "show", "telegram:101")).toBe(
-      `Rin Example: ${join(vault, "people", "Rin Example.md")}\n`,
-    )
-    await run("notes", "links", "clear", "telegram:101")
-    await run("sync", "--only", "notes")
-    expect(await run("notes", "links", "show", "telegram:101")).toBe("Rin Example: no note\n")
-  })
-})
-
-describe("memo people list", () => {
+describe("wcat people list", () => {
   const seeded = async () => {
     const store = await openStore({ env })
     const tg = { provider: "telegram", account: "1" }
@@ -204,7 +120,7 @@ describe("memo people list", () => {
   })
 })
 
-describe("memo people check", () => {
+describe("wcat people check", () => {
   it("finds the same name in any word order first", async () => {
     const found = JSON.parse(await run("people", "check", "sample", "KAI", "--json"))
     expect(

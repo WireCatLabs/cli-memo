@@ -21,8 +21,8 @@ interface Found {
 
 /** A temp store holding one invoice the owner wrote at the terminal, numbered ZANZI-901. Synthetic data only. */
 const invoiceStore = async () => {
-  const dir = mkdtempSync(join(tmpdir(), "memo-business-gate-"))
-  const env: NodeJS.ProcessEnv = { ...process.env, MESSAGING_STORE: join(dir, "s.db"), MEMO_CONFIG_DIR: dir }
+  const dir = mkdtempSync(join(tmpdir(), "wcat-business-gate-"))
+  const env: NodeJS.ProcessEnv = { ...process.env, MESSAGING_STORE: join(dir, "s.db"), WCAT_CONFIG_DIR: dir }
   delete env.AI_AGENT
   delete env.CLAUDECODE
   const store = await openStore({ env })
@@ -125,8 +125,8 @@ it("keeps from search all the products and contracts a server denies listing", a
 
 /** A temp store holding one synced tracker account with the fake source's rows. Synthetic data only. */
 const trackerStore = async () => {
-  const dir = mkdtempSync(join(tmpdir(), "memo-tracker-gate-"))
-  const env: NodeJS.ProcessEnv = { ...process.env, MESSAGING_STORE: join(dir, "s.db"), MEMO_CONFIG_DIR: dir }
+  const dir = mkdtempSync(join(tmpdir(), "wcat-tracker-gate-"))
+  const env: NodeJS.ProcessEnv = { ...process.env, MESSAGING_STORE: join(dir, "s.db"), WCAT_CONFIG_DIR: dir }
   delete env.AI_AGENT
   delete env.CLAUDECODE
   const store = await openStore({ env })

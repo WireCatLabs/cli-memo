@@ -1,4 +1,4 @@
-import { mkdtempSync, readdirSync } from "node:fs"
+import { mkdtempSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { Client } from "@modelcontextprotocol/client"
@@ -10,7 +10,7 @@ import { openStore } from "@wirecat/cli-core/store"
 import * as v from "valibot"
 import { beforeEach, expect, it } from "vitest"
 import { answerOf } from "../../test/answer.js"
-import { commandCaller, commandSchema } from "../../test/mcp.js"
+import { commandCaller } from "../../test/mcp.js"
 import { updateConfig } from "../config.js"
 import { createProgram } from "../program.js"
 import { commandCatalogue, MCP_EXCLUSIONS } from "./catalogue.js"
@@ -23,8 +23,8 @@ const account = { provider: "example", account: "alice-example" }
 beforeEach(async () => {
   env = {
     ...process.env,
-    MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "memo-mcp-")), "messages.db"),
-    MEMO_CONFIG_DIR: mkdtempSync(join(tmpdir(), "memo-mcp-config-")),
+    MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "wcat-mcp-")), "messages.db"),
+    WCAT_CONFIG_DIR: mkdtempSync(join(tmpdir(), "wcat-mcp-config-")),
   }
   const store = await openStore({ env })
   try {
@@ -57,13 +57,13 @@ it("tells a connecting agent when to save a fact, a memory or an action, within 
   }
 })
 
-it("offers the memo tools, saves an agent's memory and proposal as the client's, and logs every call", async () => {
+it("offers the wcat tools, saves an agent's memory and proposal as the client's, and logs every call", async () => {
   const { client, call, answer } = await connected()
   try {
     expect((await client.listTools()).tools.map(({ name }) => name)).toEqual([
-      "memo_tools_search",
-      "memo_read",
-      "memo_write",
+      "wcat_tools_search",
+      "wcat_read",
+      "wcat_write",
     ])
 
     const memory = await call("memories add", {
@@ -171,7 +171,7 @@ it("offers vocabulary discovery and preflight alongside permitted writes", async
       complete: true,
       semantic: "not-requested",
     })
-    const check = await client.callTool({ name: "memo_tools_search", arguments: { query: "vocabulary check" } })
+    const check = await client.callTool({ name: "wcat_tools_search", arguments: { query: "vocabulary check" } })
     expect(check.structuredContent).toMatchObject({
       items: expect.arrayContaining([
         expect.objectContaining({
@@ -276,7 +276,7 @@ it("shows hidden characters in what other people wrote, keeps ordinary text, and
   try {
     expect(client.getInstructions()).toContain(UNTRUSTED_INSTRUCTION)
     for (const tool of (await client.listTools()).tools)
-      if (tool.name === "memo_read") expect(tool.description).toContain(UNTRUSTED_NEUTRAL)
+      if (tool.name === "wcat_read") expect(tool.description).toContain(UNTRUSTED_NEUTRAL)
 
     const found = await call("search notes", { query: "Carol", exact: true })
     const text = (found.content as { text: string }[])[0]?.text ?? ""
@@ -337,7 +337,7 @@ it("covers every runnable command with a tool or a named exclusion", async () =>
   )
   const { client } = await connected()
   try {
-    const catalogue = await client.callTool({ name: "memo_tools_search", arguments: {} })
+    const catalogue = await client.callTool({ name: "wcat_tools_search", arguments: {} })
     const names = new Set(
       (catalogue.structuredContent as { items: { command: string }[] }).items.map(({ command }) => command),
     )
@@ -360,7 +360,7 @@ it("covers every runnable command with a tool or a named exclusion", async () =>
 it("never offers an agent forgetting or rejecting a memory, and keeps its correction proposed", async () => {
   const { client, call } = await connected()
   try {
-    const catalogue = await client.callTool({ name: "memo_tools_search", arguments: {} })
+    const catalogue = await client.callTool({ name: "wcat_tools_search", arguments: {} })
     const names = (catalogue.structuredContent as { items: { command: string }[] }).items.map(({ command }) => command)
     expect(names).toEqual(expect.arrayContaining(["memories add", "memories invalidate"]))
     for (const owners of ["memories remove", "facts remove", "facts reject"]) expect(names).not.toContain(owners)
@@ -393,8 +393,9 @@ it("opens a search hit in full and runs generated writes through the CLI as the 
   const { client, call, answer } = await connected()
   try {
     const hit = (await answer("search notes", { query: "Fridays", exact: true })) as { items: { ref: string }[] }
-    expect(await answer("notes show", { note: hit.items[0]?.ref })).toMatchObject({
-      text: "Bob Sample prefers Fridays",
+    expect(hit.items[0]?.ref).toBe("note:1")
+    expect(await answer("show", { ref: [hit.items[0]?.ref] })).toMatchObject({
+      items: [{ ref: "note:1", kind: "note", state: "available" }],
     })
     const memory = (await answer("memories add", {
       text: "Bob Sample prefers Fridays",
@@ -407,7 +408,7 @@ it("opens a search hit in full and runs generated writes through the CLI as the 
     })
     const created = await call("projects add", { name: "Synthetic project", key: "SYN" })
     expect(created.isError, JSON.stringify(created.structuredContent)).not.toBe(true)
-    expect((await call("notes show", { note: "note:1", mistyped_filter: true })).structuredContent).toMatchObject({
+    expect((await call("show", { ref: ["note:1"], mistyped_filter: true })).structuredContent).toMatchObject({
       error: { code: "validation_error" },
     })
   } finally {
@@ -418,9 +419,9 @@ it("opens a search hit in full and runs generated writes through the CLI as the 
 it("checks changed permissions on existing connections", async () => {
   const { client, call } = await connected()
   try {
-    updateConfig((config) => ({ ...config, permissions: { notes: "deny", "projects.evidence": "deny" } }), env)
+    updateConfig((config) => ({ ...config, permissions: { show: "deny", "projects.evidence": "deny" } }), env)
     for (const [name, args] of [
-      ["notes show", { note: "note:1" }],
+      ["show", { ref: ["note:1"] }],
       ["projects evidence", { project: "SYN", source: "all" }],
     ] as const)
       expect((await call(name, args)).structuredContent).toMatchObject({ error: { code: "permission_error" } })
@@ -432,20 +433,20 @@ it("checks changed permissions on existing connections", async () => {
 it("hides writes under the read lock and rechecks the lock before a call", async () => {
   const { client, call } = await connected()
   try {
-    env.MEMO_READ_ONLY = "1"
+    env.WCAT_READ_ONLY = "1"
     expect((await call("memories confirm", { ref: "memory:1" })).structuredContent).toMatchObject({
       error: { code: "permission_error" },
     })
     const locked = await connected()
     try {
-      const discovery = await locked.client.callTool({ name: "memo_tools_search", arguments: {} })
+      const discovery = await locked.client.callTool({ name: "wcat_tools_search", arguments: {} })
       const writes = (
         discovery.structuredContent as { items: { writes: boolean; availability: { available: boolean } }[] }
       ).items.filter((item) => item.writes)
       expect(writes.length).toBeGreaterThan(0)
       expect(writes.every((item) => !item.availability.available)).toBe(true)
-      expect(await locked.answer("notes show", { note: "note:1" })).toMatchObject({
-        text: "Bob Sample prefers Fridays",
+      expect(await locked.answer("show", { ref: ["note:1"] })).toMatchObject({
+        items: [{ ref: "note:1", kind: "note", state: "available" }],
       })
     } finally {
       await locked.client.close()
@@ -458,11 +459,11 @@ it("hides writes under the read lock and rechecks the lock before a call", async
 it("uses authority deny by default and refuses server overrides that loosen saved levels", async () => {
   const { client } = await connected()
   try {
-    const found = await client.callTool({ name: "memo_tools_search", arguments: {} })
+    const found = await client.callTool({ name: "wcat_tools_search", arguments: {} })
     expect(found.structuredContent).toMatchObject({
       items: expect.arrayContaining([
         expect.objectContaining({
-          command: "folders add",
+          command: "schedule command",
           availability: expect.objectContaining({ available: false }),
         }),
       ]),
@@ -471,10 +472,10 @@ it("uses authority deny by default and refuses server overrides that loosen save
     await client.close()
   }
   expect(() => createMemoServer(env, createProgram, ["mcp.authority=allow"])).toThrow(/loosen/)
-  updateConfig((config) => ({ ...config, permissions: { "notes.edit": "deny" } }), env)
-  expect(() => createMemoServer(env, createProgram, ["notes=allow"])).toThrow(/loosen/)
-  expect(() => createMemoServer(env, createProgram, ["notes=readonly"])).toThrow(/loosen/)
-  const server = createMemoServer(env, createProgram, ["notes=deny"])
+  updateConfig((config) => ({ ...config, permissions: { "facts.add": "deny" } }), env)
+  expect(() => createMemoServer(env, createProgram, ["facts=allow"])).toThrow(/loosen/)
+  expect(() => createMemoServer(env, createProgram, ["facts=readonly"])).toThrow(/loosen/)
+  const server = createMemoServer(env, createProgram, ["facts=deny"])
   await server.close()
 })
 
@@ -525,16 +526,10 @@ it("keeps owner operation defaults denied under broader allow keys", async () =>
   updateConfig((config) => ({ ...config, permissions: { meetings: "allow", projects: "allow", mcp: "allow" } }), env)
   const { client } = await connected()
   try {
-    const found = await client.callTool({ name: "memo_tools_search", arguments: {} })
+    const found = await client.callTool({ name: "wcat_tools_search", arguments: {} })
     const items = (found.structuredContent as { items: { command: string; availability: { available: boolean } }[] })
       .items
-    for (const name of [
-      "meetings actions confirm",
-      "meetings actions reject",
-      "projects annotations restore",
-      "folders add",
-      "folders update",
-    ])
+    for (const name of ["meetings actions confirm", "meetings actions reject", "projects annotations restore"])
       expect(items.find((item) => item.command === name)?.availability.available).toBe(false)
   } finally {
     await client.close()
@@ -545,13 +540,13 @@ it("refuses writes on the read tool and reads on the write tool before changing 
   const { client } = await connected()
   try {
     for (const [name, command] of [
-      ["memo_read", "notes add"],
-      ["memo_write", "notes show"],
+      ["wcat_read", "facts add"],
+      ["wcat_write", "facts show"],
     ] as const) {
       const result = await client.callTool({ name, arguments: { command, arguments: {} } })
       expect(result).toMatchObject({ isError: true, structuredContent: { error: { code: "validation_error" } } })
     }
-    await expect(client.callTool({ name: "notes_show", arguments: { note: "note:1" } })).rejects.toThrow()
+    await expect(client.callTool({ name: "facts_show", arguments: { ref: "fact:1" } })).rejects.toThrow()
   } finally {
     await client.close()
   }
@@ -584,8 +579,8 @@ it("keeps evidence required for agent facts when they run through the CLI", asyn
 it("gives each command call its own run ID on a reused connection", async () => {
   const { client, call } = await connected()
   try {
-    const first = await call("notes show", { note: "note:1" })
-    const second = await call("notes show", { note: "note:1" })
+    const first = await call("show", { ref: ["note:1"] })
+    const second = await call("show", { ref: ["note:1"] })
     const runId = (result: typeof first) => (result.structuredContent as { meta: { run_id: string } }).meta.run_id
     expect(runId(first)).toBeTruthy()
     expect(runId(second)).not.toBe(runId(first))
@@ -597,7 +592,7 @@ it("gives each command call its own run ID on a reused connection", async () => 
 it("lets an agent run a schedule the owner made, but not make, stop, remove or exec one", async () => {
   const { client } = await connected()
   try {
-    const found = await client.callTool({ name: "memo_tools_search", arguments: {} })
+    const found = await client.callTool({ name: "wcat_tools_search", arguments: {} })
     const items = (found.structuredContent as { items: { command: string; availability: { available: boolean } }[] })
       .items
     const availability = (command: string) => items.find((item) => item.command === command)?.availability
@@ -614,19 +609,19 @@ it("lets an agent run a schedule the owner made, but not make, stop, remove or e
 it("updates blocked command availability after an explicit authority grant without reconnecting", async () => {
   const { client, call } = await connected()
   try {
-    const discovery = async () => client.callTool({ name: "memo_tools_search", arguments: { query: "folders add" } })
+    const discovery = async () => client.callTool({ name: "wcat_tools_search", arguments: { query: "groups add" } })
     const available = async () =>
       (await discovery()).structuredContent as {
         items: { command: string; availability: { available: boolean; permission?: string } }[]
       }
-    expect((await available()).items.find((item) => item.command === "folders add")?.availability).toMatchObject({
+    expect((await available()).items.find((item) => item.command === "groups add")?.availability).toMatchObject({
       available: false,
       permission: "mcp.authority",
     })
     updateConfig((config) => ({ ...config, permissions: { "mcp.authority": "allow" } }), env)
-    expect((await available()).items.find((item) => item.command === "folders add")?.availability.available).toBe(true)
-    const result = await call("folders add", { path: mkdtempSync(join(tmpdir(), "memo-authorized-source-")) })
-    expect(result.isError, JSON.stringify(result.structuredContent)).not.toBe(true)
+    expect((await available()).items.find((item) => item.command === "groups add")?.availability.available).toBe(true)
+    const result = await call("groups add", { group: "work", source: "telegram:1" })
+    expect(result.structuredContent).not.toMatchObject({ error: { code: "permission_error" } })
   } finally {
     await client.close()
   }
@@ -658,97 +653,13 @@ it("answers show over MCP as JSON, with no --compact for an agent to pass", asyn
     const shown = await call("show", { ref: ["note:1"] })
     const body = shown.structuredContent as { items: { ref: string; kind: string; open: { argv: string[] } }[] }
     expect(body.items).toMatchObject([
-      { ref: "note:1", kind: "note", open: { argv: ["memo", "notes", "show", "note:1"] } },
+      { ref: "note:1", kind: "note", open: { argv: ["files", "notes", "show", "note:1"] } },
     ])
-    const search = await client.callTool({ name: "memo_tools_search", arguments: { query: "show" } })
+    const search = await client.callTool({ name: "wcat_tools_search", arguments: { query: "show" } })
     const { items } = search.structuredContent as { items: { command: string; arguments: Record<string, unknown> }[] }
     const tool = items.find((item) => item.command === "show")
     expect(tool?.arguments).toBeDefined()
     expect(Object.keys(tool?.arguments ?? {})).not.toContain("compact")
-  } finally {
-    await client.close()
-  }
-})
-
-it("never reads a note's text from a file or the server's stdin for an agent", async () => {
-  const { client, call, answer } = await connected()
-  try {
-    for (const command of ["notes add", "notes edit"])
-      for (const field of ["text_file", "export"])
-        expect(JSON.stringify(await commandSchema(client, command))).not.toContain(`"${field}"`)
-    for (const file of ["-", "/etc/hostname"]) {
-      const refused = await call("notes add", { text_file: file })
-      expect(refused.isError).toBe(true)
-    }
-    expect(await answer("notes add", { text: "An agent's note" })).toMatchObject({ text: "An agent's note" })
-  } finally {
-    await client.close()
-  }
-})
-
-it("refuses --text-file in an MCP run even when it reaches the command", async () => {
-  const streams = captureStreams()
-  const program = createProgram({ streams, env: { ...env, AI_AGENT: "memo-mcp" } })
-  program.exitOverride()
-  await expect(
-    program.parseAsync(["notes", "add", "--text-file", "-", "--json"], { from: "user" }),
-  ).rejects.toMatchObject({ code: "permission_error", details: { param: "text_file" } })
-})
-
-it("refuses --export in an MCP run before the note is saved or a file is written", async () => {
-  const dir = mkdtempSync(join(tmpdir(), "memo-mcp-export-"))
-  const mcp = { ...env, AI_AGENT: "memo-mcp" }
-  const program = createProgram({ streams: captureStreams(), env: mcp })
-  program.exitOverride()
-  await expect(
-    program.parseAsync(["notes", "add", "An agent's note", "--export", dir, "--json"], { from: "user" }),
-  ).rejects.toMatchObject({ code: "permission_error", details: { param: "export" } })
-  const edit = createProgram({ streams: captureStreams(), env: mcp })
-  edit.exitOverride()
-  await expect(
-    edit.parseAsync(["notes", "edit", "note:1", "--revision", "1", "--text", "x", "--export", dir, "--json"], {
-      from: "user",
-    }),
-  ).rejects.toMatchObject({ code: "permission_error", details: { param: "export" } })
-  expect(readdirSync(dir)).toEqual([])
-  const store = await openStore({ env })
-  try {
-    expect((await store.notes.note("note:1")).text).toBe("Bob Sample prefers Fridays")
-    expect((await store.notes.notes({ source: "internal", limit: 10 })).items).toHaveLength(1)
-  } finally {
-    await store.close()
-  }
-})
-
-it("adds a source for an agent as text only: no path and no link reach memo", async () => {
-  const { client, call } = await connected()
-  try {
-    const schema = JSON.stringify(await commandSchema(client, "sources add"))
-    expect(schema).toContain('"text"')
-    expect(schema).not.toContain('"source"')
-    const added = await call("sources add", { text: "An agent kept the marshgate notes." })
-    expect(answerOf(JSON.stringify(added.structuredContent))).toMatchObject({ kind: "text", created: true })
-    const link = await call("sources add", { text: "ignored", source: "https://example.org/private" })
-    expect(link.isError).toBe(true)
-    const names = (
-      (await client.callTool({ name: "memo_tools_search", arguments: {} })).structuredContent as {
-        items: { command: string }[]
-      }
-    ).items.map(({ command }) => command)
-    expect(names).not.toContain("sources remove")
-    expect(names).toContain("sources readers list")
-    for (const excluded of [
-      "sources suggest",
-      "sources readers set",
-      "models keys set",
-      "models keys remove",
-      "models ai set",
-      "models ai unset",
-      "models ai remove",
-      "models ai revoke",
-      "models ai check",
-    ])
-      expect(names).not.toContain(excluded)
   } finally {
     await client.close()
   }

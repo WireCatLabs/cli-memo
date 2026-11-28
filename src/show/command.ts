@@ -16,43 +16,46 @@ const MAX_REFS = 100
 /** The kinds a bare number could name: every kind whose store id is a number. */
 const NUMBERED = ["note", "document", "person", "organization", "project", "task", "fact", "memory"] as const
 
-/** memo's own read for each kind it holds; a messenger's kinds open in the CLI the provider registry names. */
+/**
+ * wcat's own read for each kind it holds, and the files CLI's for notes; a messenger's kinds open in the CLI the
+ * provider registry names.
+ */
 export const LOCAL_OPENS: Partial<Record<RefKindName, string[]>> = {
-  note: ["memo", "notes", "show"],
-  document: ["memo", "notes", "show"],
-  person: ["memo", "context"],
-  organization: ["memo", "organizations", "context"],
-  project: ["memo", "projects", "context"],
-  task: ["memo", "tasks", "show"],
-  fact: ["memo", "facts", "show"],
-  memory: ["memo", "memories", "show"],
-  message: ["memo", "messages", "show"],
-  invoice: ["memo", "invoices", "show"],
-  payment: ["memo", "payments", "show"],
-  order: ["memo", "orders", "show"],
-  deal: ["memo", "deals", "show"],
-  lead: ["memo", "leads", "show"],
-  pipeline: ["memo", "pipelines", "show"],
-  product: ["memo", "products", "show"],
-  contract: ["memo", "contracts", "show"],
-  subscription: ["memo", "subscriptions", "show"],
-  wallet: ["memo", "wallets", "show"],
-  transaction: ["memo", "transactions", "show"],
-  event: ["memo", "events", "show"],
+  note: ["files", "notes", "show"],
+  document: ["files", "notes", "show"],
+  person: ["wcat", "context"],
+  organization: ["wcat", "organizations", "context"],
+  project: ["wcat", "projects", "context"],
+  task: ["wcat", "tasks", "show"],
+  fact: ["wcat", "facts", "show"],
+  memory: ["wcat", "memories", "show"],
+  message: ["wcat", "messages", "show"],
+  invoice: ["wcat", "invoices", "show"],
+  payment: ["wcat", "payments", "show"],
+  order: ["wcat", "orders", "show"],
+  deal: ["wcat", "deals", "show"],
+  lead: ["wcat", "leads", "show"],
+  pipeline: ["wcat", "pipelines", "show"],
+  product: ["wcat", "products", "show"],
+  contract: ["wcat", "contracts", "show"],
+  subscription: ["wcat", "subscriptions", "show"],
+  wallet: ["wcat", "wallets", "show"],
+  transaction: ["wcat", "transactions", "show"],
+  event: ["wcat", "events", "show"],
 }
 
-/** The permission key of the memo command that opens a kind, such as `invoices.show`. */
+/** The permission key of the wcat command that opens a kind, such as `invoices.show`. */
 export const openKeyOf = (kind: string) => LOCAL_OPENS[kind as RefKindName]?.slice(1).join(".")
 
 /**
- * `memo show` tells what the command that opens a reference would, so an MCP client denied that command is refused
+ * `wcat show` tells what the command that opens a reference would, so an MCP client denied that command is refused
  * here too, rather than read the title past it.
  */
 const refuseDenied = (command: Command, summaries: readonly Pick<RefSummary, "ref" | "kind">[]) => {
   for (const { ref, kind } of summaries) {
     const key = openKeyOf(kind)
     if (key !== undefined && grantedLevel(command, key) === "deny")
-      throw new CliError("permission_error", `${ref}: memo's MCP server denies ${key}`, {
+      throw new CliError("permission_error", `${ref}: wcat's MCP server denies ${key}`, {
         reason: "access.denied",
         permission: key,
       })
@@ -77,7 +80,7 @@ const ACCOUNT_KEY = /^[a-z][a-z-]*:\S+$/
 
 /**
  * cli-core's `tasks show` takes a task's id, not its `task:` ref, and a task from a message lives in that message's
- * account, which it asks for: memo never picks one.
+ * account, which it asks for: wcat never picks one.
  */
 const taskOpen = (summary: RefSummary, open: RefOpen): RefOpen => {
   if (summary.kind !== "task" || open.argv === null) return open
@@ -110,7 +113,7 @@ const profilesFor =
   (provider, account) => {
     if (account === null) return { why: `${provider} names no account here`, profiles: [] }
     return (
-      profileFor(provider, account, env) ?? { why: `memo cannot read which profiles ${provider} has`, profiles: [] }
+      profileFor(provider, account, env) ?? { why: `wcat cannot read which profiles ${provider} has`, profiles: [] }
     )
   }
 

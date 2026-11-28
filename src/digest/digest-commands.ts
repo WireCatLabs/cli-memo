@@ -138,7 +138,7 @@ const withDigestOptions = (command: Command) =>
       )
       .option(
         "--allow-dangerous",
-        "let an agent whose own limits cannot hold it to memo's commands write it, where `memo schedule agents list` " +
+        "let an agent whose own limits cannot hold it to wcat's commands write it, where `wcat schedule agents list` " +
           "says allowed_with_ack (codex): it may then run any program inside its sandbox. Only you give this",
       )
       .option(
@@ -154,10 +154,10 @@ const withDigestOptions = (command: Command) =>
       .option("--json", "print JSON"),
   )
 
-/** The commands an old claude digest was allowed: memo's own and the mail CLI's. */
+/** The commands an old claude digest was allowed: wcat's own and the mail CLI's. */
 const LEGACY_TOOLS = [APP.command, MAIL_CLI.command].map((command) => `Bash(${command}:*)`)
 
-/** What an existing digest's agent was asked, so an edit keeps it; an old file only in the shape memo saved it. */
+/** What an existing digest's agent was asked, so an edit keeps it; an old file only in the shape wcat saved it. */
 const kept = (schedule: Schedule): DigestAgent =>
   agentOf(schedule) ??
   legacyClaudeDigest(schedule.argv, LEGACY_TOOLS) ?? { harness: harnessOfArgv(schedule.argv) ?? "claude", model: "" }
@@ -242,7 +242,7 @@ export const digestCommands = (digest: Command, print: Print, env: NodeJS.Proces
   })
   /**
    * After cli-core 0.643.0 a timer runs only a schedule that keeps its `agent` (SEC-11). Each old claude digest whose
-   * argv is the shape memo saved is saved again once, at the owner's first command; the rest wait in `digest list`.
+   * argv is the shape wcat saved is saved again once, at the owner's first command; the rest wait in `digest list`.
    * Never in an agent's run or under the read-only lock, where a run could rewrite the owner's timers.
    */
   const saveOldDigests = async (command: Command) => {
@@ -290,7 +290,7 @@ export const digestCommands = (digest: Command, print: Print, env: NodeJS.Proces
   const saveBrief = async (name: string, text: string | undefined) => {
     if (text === undefined) return
     const body = checkedBrief(text)
-    await withStore(env, async (store) => store.templates.save(briefAddress(name), body, "memo"))
+    await withStore(env, async (store) => store.templates.save(briefAddress(name), body, "wcat"))
   }
 
   const listQuery = {
@@ -313,7 +313,7 @@ export const digestCommands = (digest: Command, print: Print, env: NodeJS.Proces
         given.json,
         wholeList("digest list", items),
         items.length === 0
-          ? "No digests. `memo digest add <name> --title … --at 08:30` makes one."
+          ? "No digests. `wcat digest add <name> --title … --at 08:30` makes one."
           : items
               .map((one) =>
                 [
@@ -339,18 +339,18 @@ export const digestCommands = (digest: Command, print: Print, env: NodeJS.Proces
     grantsAuthority(annotate(digest.command("add"), { effects: LOCAL_WRITE }))
       .summary("make a digest: its times, sources, routes and brief, on its timer")
       .description(
-        "make a digest: an agent that runs memo's morning-digest skill at the given times, reading from its previous " +
+        "make a digest: an agent that runs wcat's morning-digest skill at the given times, reading from its previous " +
           "time (a weekly one reads the week) and only the sources given, and sends what it writes along the routes " +
           "given. It runs read only. Each run is a paid model call; only you make one",
       )
       .argument("<name>", "lowercase letters, digits and dashes")
-      .option("--paused", "make it without putting it on its timer; `memo digest resume` does"),
+      .option("--paused", "make it without putting it on its timer; `wcat digest resume` does"),
   ).action(async (name: string, given: Options, command: Command) => {
     const digestName = scheduleName(name)
     if (existsSync(digestScheduleFile(env, digestName)))
       throw new CliError(
         "validation_error",
-        `${digestName} already exists; \`memo digest edit ${digestName}\` changes it`,
+        `${digestName} already exists; \`wcat digest edit ${digestName}\` changes it`,
         {
           reason: "digest.exists",
         },
@@ -397,13 +397,13 @@ export const digestCommands = (digest: Command, print: Print, env: NodeJS.Proces
           `--deliver-to all its routes), and the rest stays as it was. --source ${ALL} reads everything again, ` +
           `--deliver-to ${NONE} sends nowhere. A paused digest stays paused. Only you change one`,
       )
-      .argument("<name>", "the digest's name, as `memo digest list` shows it"),
+      .argument("<name>", "the digest's name, as `wcat digest list` shows it"),
   ).action(async (name: string, given: Options, command: Command) => {
     const { schedule } = digestOf(env, name)
     if (!runsDigestSkill(schedule))
       throw new CliError(
         "validation_error",
-        `${name} runs a prompt of its own, made with \`memo schedule agent\`; an edit here would replace it — change it there`,
+        `${name} runs a prompt of its own, made with \`wcat schedule agent\`; an edit here would replace it — change it there`,
         { reason: "digest.own-prompt" },
       )
     const when = given.at?.length ? calendarOf(given.at.flatMap(slotsOfAt)) : schedule.when
@@ -447,7 +447,7 @@ export const digestCommands = (digest: Command, print: Print, env: NodeJS.Proces
         "its routes, only along those --deliver-to names (each one of its own), or with --no-notify nowhere. A paid " +
         "model call: the day's cost cap holds, and only you run it",
     )
-    .argument("<name>", "the digest's name, as `memo digest list` shows it")
+    .argument("<name>", "the digest's name, as `wcat digest list` shows it")
     .option("--no-notify", "keep it here: send it nowhere")
     .option(
       "--deliver-to <route>",
@@ -495,7 +495,7 @@ export const digestCommands = (digest: Command, print: Print, env: NodeJS.Proces
           ? "take a digest off its timer; it stays, and run still builds it"
           : "put a paused digest back on its timer",
       )
-      .argument("<name>", "the digest's name, as `memo digest list` shows it")
+      .argument("<name>", "the digest's name, as `wcat digest list` shows it")
       .option("--json", "print JSON")
       .action(async (name: string, given: { json?: boolean }, command: Command) => {
         digestOf(env, name)
@@ -506,7 +506,7 @@ export const digestCommands = (digest: Command, print: Print, env: NodeJS.Proces
 
   fromAppOption(grantsAuthority(annotate(digest.command("remove"), { effects: LOCAL_WRITE })))
     .summary("remove a digest and its timer; its past runs, brief and templates stay")
-    .argument("<name>", "the digest's name, as `memo digest list` shows it")
+    .argument("<name>", "the digest's name, as `wcat digest list` shows it")
     .option("--json", "print JSON")
     .action(async (name: string, given: { json?: boolean }, command: Command) => {
       digestOf(env, name)

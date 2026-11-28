@@ -45,7 +45,7 @@ it("keeps wallets update, which sets the opening balance, from an MCP client, an
   const f = await businessStore("mcp-business")
   const { client } = await connected(f.env)
   try {
-    const found = await client.callTool({ name: "memo_tools_search", arguments: {} })
+    const found = await client.callTool({ name: "wcat_tools_search", arguments: {} })
     const items = (found.structuredContent as { items: Listed[] }).items
     const one = (command: string) => items.find((item) => item.command === command)
     expect(one("wallets update")?.availability).toMatchObject({ available: false, permission: "wallets.update" })
@@ -65,8 +65,8 @@ it("shows imported business data and its source records to an agent, and finds i
   try {
     const shown = await answer("show", { ref: ["contract:1", "invoice:1"] })
     expect(shown.items.map((one) => one.open.line)).toEqual([
-      "memo contracts show contract:1",
-      "memo invoices show invoice:1",
+      "wcat contracts show contract:1",
+      "wcat invoices show invoice:1",
     ])
     const contract = await answer("contracts show", { contract: "contract:1" })
     expect(contract.item.sources.records.items).toEqual([{ record: "contract:K-2026-14", account: "example-erp:demo" }])
@@ -93,7 +93,7 @@ it("leaves the business lane out of search all for a server that denies business
   }
 })
 
-it("takes business.list from the config file, and memo doctor does not call it unknown", async () => {
+it("takes business.list from the config file, and wcat doctor does not call it unknown", async () => {
   const f = await businessStore("mcp-business-saved")
   await f.piped(EXAMPLE, "records", "import", "-", "--account", "example-erp:demo")
   updateConfig((config) => ({ ...config, permissions: { "business.list": "deny" } }), f.env)

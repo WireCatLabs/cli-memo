@@ -6,10 +6,11 @@ import { openStore } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { expect, it } from "vitest"
 import { answerOf, envelopeOf } from "../../test/answer.js"
+import { addNote } from "../../test/notes.js"
 import { createProgram } from "../program.js"
 
 const setUp = async () => {
-  const root = mkdtempSync(join(tmpdir(), "memo-show-"))
+  const root = mkdtempSync(join(tmpdir(), "wcat-show-"))
   const accounts = join(root, "tg-state", "accounts")
   mkdirSync(accounts, { recursive: true })
   writeFileSync(join(accounts, "work.json"), JSON.stringify({ account: "1" }))
@@ -54,8 +55,8 @@ const commandAt = (program: Command, words: readonly string[]) => {
 }
 
 it("says what each reference names and the command that opens it, in the order given", async () => {
-  const { json, run } = await setUp()
-  const note = await json("notes", "add", "Harbour plan draft", "--title", "Harbour plan")
+  const { json, run, env } = await setUp()
+  const note = await addNote(env, "Harbour plan draft", { title: "Harbour plan" })
   const fact = await json("facts", "add", "Releases go out on Fridays", "--kind", "decision")
   const project = await json("projects", "add", "Synthetic Harbour", "--key", "SYH")
   const organization = await json("organizations", "add", "Example Org", "--kind", "company")
@@ -71,8 +72,10 @@ it("says what each reference names and the command that opens it, in the order g
     "msg:telegram/1/-100/7",
   )
   const { task } = await json("tasks", "add", "msg:telegram/1/-100/7", "--type", "request")
-  const gone = await json("notes", "add", "Scratch")
-  await json("notes", "remove", gone.ref)
+  const gone = await addNote(env, "Scratch")
+  const store = await openStore({ env })
+  await store.notes.removeNote(gone.id)
+  await store.close()
   const refs = [
     "chat:telegram/1/-100",
     "msg:telegram/1/-100/7",
@@ -101,7 +104,12 @@ it("says what each reference names and the command that opens it, in the order g
     untrusted: ["title", "in"],
   })
   expect(message).toMatchObject({ kind: "message", open: { argv: ["tg", "work", "messages", "show", refs[1]] } })
-  expect(shownNote).toMatchObject({ kind: "note", title: "Harbour plan", state: "available" })
+  expect(shownNote).toMatchObject({
+    kind: "note",
+    title: "Harbour plan",
+    state: "available",
+    open: { argv: ["files", "notes", "show", note.ref] },
+  })
   expect(shownNote.untrusted).toBeUndefined()
   expect(rest.map((one: { kind: string; state: string }) => [one.kind, one.state])).toEqual([
     ["fact", "available"],
@@ -114,12 +122,12 @@ it("says what each reference names and the command that opens it, in the order g
   ])
 
   const program = createProgram({ streams: captureStreams() })
-  for (const one of answer.items.filter((item: { tool: string }) => item.tool === "memo")) {
+  for (const one of answer.items.filter((item: { tool: string }) => item.tool === "wcat")) {
     const words = one.open.argv.slice(1).filter((word: string) => /^[a-z]+$/.test(word))
-    expect(commandAt(program, words), `memo ${words.join(" ")}`).toBeDefined()
+    expect(commandAt(program, words), `wcat ${words.join(" ")}`).toBeDefined()
   }
-  expect(answer.items.at(-2).open.argv).toEqual(["memo", "tasks", "show", task.id, "--source", "telegram:1"])
-  for (const one of answer.items.slice(2, -1)) expect((await run(...one.open.argv.slice(1))).code).toBe(0)
+  expect(answer.items.at(-2).open.argv).toEqual(["wcat", "tasks", "show", task.id, "--source", "telegram:1"])
+  for (const one of answer.items.slice(3, -1)) expect((await run(...one.open.argv.slice(1))).code).toBe(0)
 })
 
 it("never picks a profile: with two on the account it keeps <profile> and lists them", async () => {
@@ -134,38 +142,27 @@ it("never picks a profile: with two on the account it keeps <profile> and lists 
 })
 
 it("refuses a bare number with the references that exist, and a typo with the kind it meant", async () => {
-  const { json, run } = await setUp()
-  const note = await json("notes", "add", "Harbour plan draft")
+  const { json, run, env } = await setUp()
+  const note = await addNote(env, "Harbour plan draft")
   const id = note.ref.slice("note:".length)
-  await expect(run("notes", "show", id)).rejects.toMatchObject({
+  await expect(run("show", id)).rejects.toMatchObject({
     code: "validation_error",
-    message:
-      `"${id}" is a bare number; did you mean ${note.ref}? To read a file named ${id}, give its path: ./${id}`.replace(
-        "? To",
-        "?; to",
-      ),
+    message: expect.stringContaining(`did you mean ${note.ref}`),
     details: { reason: "ref.bare-number" },
   })
-  await expect(run("notes", "show", "4242")).rejects.toThrow(/no note or document has id 4242/)
-  await expect(run("notes", "edit", id, "--revision", "1", "--text", "x")).rejects.toThrow(`did you mean ${note.ref}`)
-  await expect(run("notes", "remove", id)).rejects.toThrow(`did you mean ${note.ref}`)
-  await expect(run("show", id)).rejects.toThrow(`did you mean ${note.ref}`)
   await json("projects", "add", "Synthetic Harbour", "--key", "SYH")
   await expect(run("projects", "key-documents", "add", "SYH", id, "--reason", "plan")).rejects.toThrow(
     `did you mean ${note.ref}`,
   )
   await expect(run("tasks", "add", id)).rejects.toThrow(`did you mean ${note.ref}`)
   await expect(run("show", "doc:413")).rejects.toMatchObject({ details: { reason: "ref.unknown-kind" } })
-  expect((await json("notes", "show", note.ref)).ref).toBe(note.ref)
 })
 
 it("prints one line per item with --compact, keeping each reference, and refuses it with --json", async () => {
-  const { json, run } = await setUp()
-  await json("notes", "add", "Harbour plan draft", "--title", "Harbour plan")
+  const { json, run, env } = await setUp()
+  await addNote(env, "Harbour plan draft", { title: "Harbour plan" })
   await json("facts", "add", "Releases go out on Fridays", "--kind", "decision")
 
-  const notes = await run("notes", "list", "--compact")
-  expect(notes.stdout).toMatch(/^note:1 · \d\d-\d\d · internal · Harbour plan · Harbour plan draft$/m)
   const facts = await run("facts", "list", "--compact")
   expect(facts.stdout).toMatch(/^fact:1 · decision · accepted · \d\d-\d\d · Releases go out on Fridays$/m)
   const found = await run("search", "all", "budget", "--compact")
@@ -181,6 +178,6 @@ it("prints one line per item with --compact, keeping each reference, and refuses
   const show = await run("show", "chat:telegram/1/-100", "--compact")
   expect(show.stdout).toContain("chat:telegram/1/-100 · chat · available · tg work messages list chat:telegram/1/-100")
 
-  await expect(run("notes", "list", "--compact", "--json")).rejects.toMatchObject({ code: "validation_error" })
+  await expect(run("facts", "list", "--compact", "--json")).rejects.toMatchObject({ code: "validation_error" })
   await expect(run("search", "messages", "budget", "--brief", "--compact")).rejects.toThrow(/pick one/)
 })

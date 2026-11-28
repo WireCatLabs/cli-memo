@@ -8,7 +8,7 @@ import { envelopeOf } from "../../test/answer.js"
 import { createProgram } from "../program.js"
 
 it("sets a person's engagement and a role note on a project membership, lists them and orders the project's people", async () => {
-  const root = mkdtempSync(join(tmpdir(), "memo-engagement-"))
+  const root = mkdtempSync(join(tmpdir(), "wcat-engagement-"))
   const env: NodeJS.ProcessEnv = { ...process.env, MESSAGING_STORE: join(root, "store.db") }
   delete env.AI_AGENT
   delete env.CLAUDECODE

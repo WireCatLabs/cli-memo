@@ -1,15 +1,16 @@
-import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs"
+import { mkdtempSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { captureStreams } from "@wirecat/cli-base"
 import { openStore } from "@wirecat/cli-core/store"
 import { expect, it } from "vitest"
 import { answerOf } from "../../test/answer.js"
+import { addFolderNotes, addNote } from "../../test/notes.js"
 import { throwParseFailures } from "../failure.js"
 import { createProgram } from "../program.js"
 
 const setUp = async () => {
-  const env = { ...process.env, MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "memo-source-")), "store.db") }
+  const env = { ...process.env, MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "wcat-source-")), "store.db") }
   const store = await openStore({ env })
   for (const account of ["1", "2"]) await store.accounts.saveAccount({ provider: "telegram", account }, { name: null })
   await store.close()
@@ -20,7 +21,7 @@ const setUp = async () => {
     await program.parseAsync([...args, "--json"], { from: "user" })
     return { answer: answerOf(streams.stdout.join("")), stderr: streams.stderr.join("") }
   }
-  const note = async (text: string) => `note:${(await run("notes", "add", text)).answer.id}`
+  const note = async (text: string) => (await addNote(env, text)).ref
   return { run, note, env }
 }
 
@@ -88,7 +89,7 @@ it("acts as Drive's documents account by the notes:<id> the list reader gives it
   expect(answer.task.account).toBe("google-drive:u1")
 })
 
-it("asks memo's own notes when --source names notes", async () => {
+it("asks wcat's own notes when --source names notes", async () => {
   const { run, note } = await setUp()
   const ref = await note("Synthetic lighthouse budget")
 
@@ -99,12 +100,12 @@ it("asks memo's own notes when --source names notes", async () => {
 })
 
 it("makes a task from a folder's file and reminds about it in a store that holds only notes", async () => {
-  const root = mkdtempSync(join(tmpdir(), "memo-notes-only-"))
+  const root = mkdtempSync(join(tmpdir(), "wcat-notes-only-"))
   const env = {
     ...process.env,
     MESSAGING_STORE: join(root, "store.db"),
-    MEMO_CONFIG_DIR: join(root, "config"),
-    MEMO_STATE_DIR: join(root, "state"),
+    WCAT_CONFIG_DIR: join(root, "config"),
+    WCAT_STATE_DIR: join(root, "state"),
   }
   const run = async (...args: string[]) => {
     const streams = captureStreams()
@@ -113,10 +114,7 @@ it("makes a task from a folder's file and reminds about it in a store that holds
     await program.parseAsync([...args, "--json"], { from: "user" })
     return answerOf(streams.stdout.join(""))
   }
-  mkdirSync(join(root, "vault"))
-  writeFileSync(join(root, "vault", "plan.md"), "Send the synthetic budget.")
-  await run("folders", "add", join(root, "vault"))
-  await run("sync", "--only", "notes")
+  await addFolderNotes(env, { "plan.md": "Send the synthetic budget." })
   const document = (await run("search", "notes", "budget")).items[0]
   const store = await openStore({ env })
   const folder = (await store.accounts.accounts())[0]

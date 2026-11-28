@@ -24,7 +24,7 @@ export const digestInput =
     const parts: string[] = []
     for (const argv of [agenda, history]) {
       const answer = await run(argv).catch(() => undefined)
-      if (answer?.trim()) parts.push(`# memo ${argv.join(" ")}\n\n${answer.trim()}`)
+      if (answer?.trim()) parts.push(`# wcat ${argv.join(" ")}\n\n${answer.trim()}`)
     }
     return parts.length ? `${parts.join("\n\n")}\n` : undefined
   }

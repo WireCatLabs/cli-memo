@@ -15,23 +15,23 @@ import { withStore } from "../answer.js"
 import { APP } from "../app.js"
 
 /**
- * The account memo's reads run as: its own notes. It names no stored account, so the list reader never adds it to
+ * The account wcat's reads run as: its own notes. It names no stored account, so the list reader never adds it to
  * `held` as a new one.
  */
-export const MEMO_ACCOUNT: AccountKey = { provider: "notes", account: "internal" }
+export const WCAT_ACCOUNT: AccountKey = { provider: "notes", account: "internal" }
 
-/** Who runs, as cli-core's source lists see it: memo, so `group:` and profiles resolve as every app saved them. */
+/** Who runs, as cli-core's source lists see it: wcat, so `group:` and profiles resolve as every app saved them. */
 export const memoListContext = async (store: MessageStore, env: NodeJS.ProcessEnv): Promise<GroupContext> => {
   const held = await store.accounts.storedAccounts()
-  // listContextOf adds the running account when the store has no row for it; memo's own notes are no account.
-  const context = await listContextOf(store, MEMO_ACCOUNT, APP, held, env)
+  // listContextOf adds the running account when the store has no row for it; wcat's own notes are no account.
+  const context = await listContextOf(store, WCAT_ACCOUNT, APP, held, env)
   return {
     ...context,
-    held: context.held.filter((one) => one.id !== 0 || keyOf(one) !== keyOf(MEMO_ACCOUNT)),
+    held: context.held.filter((one) => one.id !== 0 || keyOf(one) !== keyOf(WCAT_ACCOUNT)),
   }
 }
 
-/** The group this run reads (WC-ACCT-13): the first word, `MEMO_GROUP` or the lock `MEMO_GROUP_LOCK`. */
+/** The group this run reads (WC-ACCT-13): the first word, `WCAT_GROUP` or the lock `WCAT_GROUP_LOCK`. */
 export const groupOf = (env: NodeJS.ProcessEnv, word?: string): RunGroup | undefined => runGroup(APP, env, word)
 
 export interface GroupScope {
@@ -60,7 +60,7 @@ export type GroupKind = "messages" | "mail" | "notes" | "events" | "crm" | "busi
 const OWN_BUSINESS: AccountKey = { provider: "business", account: "internal" }
 
 /**
- * The group's accounts of each kind `search all` reads. The owner's own notes (`memo notes add`) and business data
+ * The group's accounts of each kind `search all` reads. The owner's own notes (`wcat notes add`) and business data
  * belong to no account, so every group reads them; an import's business data is its account's, in a group only when
  * the group holds that account (WC-ACCT-13). `imports` are the accounts whose imports made business data.
  */
@@ -71,7 +71,7 @@ export const accountsByKind = (
   const kinds: Record<GroupKind, AccountKey[]> = {
     messages: [],
     mail: [],
-    notes: [MEMO_ACCOUNT],
+    notes: [WCAT_ACCOUNT],
     events: [],
     crm: [],
     business: [OWN_BUSINESS, ...imports.filter(scope.has)],
@@ -131,7 +131,7 @@ const optionValue = (command: Command, name: string): string | undefined => {
 const declares = (command: Command, name: string) => command.options.some((option) => option.attributeName() === name)
 
 /**
- * Before every action: under MEMO_GROUP_LOCK cli-core refuses a command not marked `groupAware` and any reference
+ * Before every action: under WCAT_GROUP_LOCK cli-core refuses a command not marked `groupAware` and any reference
  * whose thing is outside the group (WC-ACCT-13). In a group, no `--source` becomes `group:<name>`, a given one is
  * narrowed to the group, and an outside `--account` is refused. `word` is the first word `liftGroup` lifted.
  */

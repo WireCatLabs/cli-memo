@@ -9,7 +9,7 @@ import { createProgram, refuseJoinedPath } from "./program.js"
 
 const packaged = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")).version
 
-describe("memo", () => {
+describe("wcat", () => {
   it("prints the version in package.json", async () => {
     let out = ""
     const program = createProgram()
@@ -29,7 +29,7 @@ describe("memo", () => {
     await expect(program.parseAsync(["--help-all"], { from: "user" })).rejects.toMatchObject({
       code: "commander.help",
     })
-    expect(out).toContain("Usage: memo")
+    expect(out).toContain("Usage: wcat")
     expect(out).toContain("--debug")
   })
 
@@ -41,7 +41,7 @@ describe("memo", () => {
     }
     const listed = JSON.parse(await run("guide", "--json"))
     expect(listed.items).toContainEqual(
-      expect.objectContaining({ name: "person-brief", command: "memo guide person-brief" }),
+      expect.objectContaining({ name: "person-brief", command: "wcat guide person-brief" }),
     )
     expect(await run("guide")).toMatch(/^ +person-brief +One person across every tool$/m)
 
@@ -52,7 +52,7 @@ describe("memo", () => {
         .exitOverride()
         .parseAsync(["help", "tags", "add"], { from: "user" })
         .catch(() => undefined)
-      expect(printed.mock.calls.join("")).toContain("Usage: memo tags add")
+      expect(printed.mock.calls.join("")).toContain("Usage: wcat tags add")
     } finally {
       printed.mockRestore()
     }
@@ -62,8 +62,8 @@ describe("memo", () => {
     const streams = captureStreams()
     await createProgram({ streams }).parseAsync(["commands", "--json"], { from: "user" })
     const answer = JSON.parse(streams.stdout.join(""))
-    expect(answer.cli).toBe("memo")
-    expect(answer.commands.map((command: { name: string }) => command.name)).toContain("notes")
+    expect(answer.cli).toBe("wcat")
+    expect(answer.commands.map((command: { name: string }) => command.name)).toContain("tags")
   })
 
   it.each([[[]], [["tags", "add"]]])("prints a commands document in cli-base's shape for %j", async (path) => {
@@ -82,15 +82,13 @@ describe("memo", () => {
     const streams = captureStreams()
     await createProgram({ streams }).parseAsync(["commands"], { from: "user" })
     const text = streams.stdout.join("")
-    expect(text).toMatch(/^memo commands, by section\./)
-    expect(text).toMatch(/\nWrite\n {2}memo notes add /)
-    expect(text).toMatch(/\nAutomate\n(?: {2}.*\n)* {2}memo sync /)
+    expect(text).toMatch(/^wcat commands, by section\./)
+    expect(text).toMatch(/\nWrite\n {2}wcat memories add /)
+    expect(text).toMatch(/\nAutomate\n(?: {2}.*\n)* {2}wcat sync /)
     expect(text).not.toContain("\nOther\n")
     const scoped = captureStreams()
-    await createProgram({ streams: scoped }).parseAsync(["commands", "mail"], { from: "user" })
-    expect(scoped.stdout.join("")).toMatch(
-      /^memo mail commands, by section\.[\s\S]*\nRead\n(?: {2}.*\n)* {2}memo mail review /,
-    )
+    await createProgram({ streams: scoped }).parseAsync(["commands", "review"], { from: "user" })
+    expect(scoped.stdout.join("")).toMatch(/^wcat review commands, by section\.[\s\S]* {2}wcat review mail /)
   })
 
   it("keeps its own JSON contract", async () => {
@@ -119,8 +117,18 @@ describe("memo", () => {
     expect(failed).toEqual([])
   }, 30_000)
 
+  it("keeps the files CLI's groups and memo's mail group out, with review mail and review findings in their place", () => {
+    const program = createProgram({ streams: captureStreams() })
+    const words = (command: Command) => command.commands.map((one) => one.name())
+    for (const gone of ["notes", "folders", "sources", "import", "mail"]) expect(words(program)).not.toContain(gone)
+    const review = program.commands.find((one) => one.name() === "review") as Command
+    expect(words(review)).toEqual(expect.arrayContaining(["mail", "findings"]))
+    const findings = review.commands.find((one) => one.name() === "findings") as Command
+    expect(words(findings).sort()).toEqual(["add", "list", "show"])
+  })
+
   it("refuses --json on the mcp group as on its other groups, instead of printing help", async () => {
-    for (const group of ["mcp", "notes"]) {
+    for (const group of ["mcp", "tags"]) {
       const program = createProgram({ streams: captureStreams() })
       throwParseFailures(program)
       await expect(program.parseAsync([group, "--json"], { from: "user" })).rejects.toMatchObject({
@@ -146,10 +154,10 @@ describe("a command path given as one argument", () => {
     expect(check("projects add", "--help")).toThrow(
       expect.objectContaining({
         code: "validation_error",
-        message: expect.stringContaining('"projects add" was given as one argument; run: memo projects add'),
+        message: expect.stringContaining('"projects add" was given as one argument; run: wcat projects add'),
       }),
     )
-    expect(check("tags", "add work", "--help")).toThrow(/run: memo tags add work/)
+    expect(check("tags", "add work", "--help")).toThrow(/run: wcat tags add work/)
   })
 
   it("leaves a command path in separate words and quoted values alone", () => {

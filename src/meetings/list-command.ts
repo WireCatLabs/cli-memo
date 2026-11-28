@@ -29,7 +29,7 @@ const NOTE =
   `times overlap. Without started_at: the last ${MEETINGS_RECENT_DAYS} days and the next ${MEETINGS_AHEAD_DAYS}. ` +
   "Latest start first."
 
-/** `memo meetings list` and `show`, in the `meetings` group `meetings actions` made. */
+/** `wcat meetings list` and `show`, in the `meetings` group `meetings actions` made. */
 export const meetingListCommands = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
   const { print } = answers(program, streams, env)
   const meetings = program.commands.find((command) => command.name() === "meetings")

@@ -24,7 +24,7 @@ import { APP } from "../app.js"
 import { SHELL_OVERRIDES } from "../contract-overrides.js"
 import { VERSION } from "../version.js"
 
-/** The major version of the JSON memo's commands print; raise it when a field is removed or renamed. */
+/** The major version of the JSON wcat's commands print; raise it when a field is removed or renamed. */
 export const CONTRACT = 4
 
 const commandsCommandDefinition = (program: Command, streams: Streams): void => {
@@ -43,7 +43,7 @@ const commandsCommandDefinition = (program: Command, streams: Streams): void => 
             commands: own ? annotateAvailability(info.commands, own) : [...info.commands],
           }
         })
-      const plain = commandsDocument(program, { cli: "memo", version: VERSION, contract: CONTRACT })
+      const plain = commandsDocument(program, { cli: "wcat", version: VERSION, contract: CONTRACT })
       const document = { ...plain, commands: annotateAvailability(plain.commands, program) }
       const answer = path.length ? scoped(document, path) : document
       if (options.json) createRenderer({ format: "json", color: false, streams }).result(answer)
@@ -67,20 +67,11 @@ const scoped = (document: ReturnType<typeof commandsDocument>, path: string[]) =
 
 const same = (a: readonly string[], b: readonly string[] | undefined) => a.join(" ") === b?.join(" ")
 
-// cli-core places its own groups (search, tags, tasks, meetings, mcp, skill…); these are memo's.
+// cli-core places its own groups (search, tags, tasks, meetings, mcp, skill…); these are wcat's.
 const SECTIONS: [string, HelpSection][] = [
   ["context", "read"],
   ["show", "read"],
-  ["notes", "read"],
   ["documents", "read"],
-  ["notes add", "write"],
-  ["notes edit", "write"],
-  ["notes remove", "write"],
-  ["notes export", "write"],
-  ["sources", "read"],
-  ["sources add", "write"],
-  ["sources remove", "write"],
-  ["mail", "read"],
   ["events", "read"],
   ["agents", "read"],
   ["answers", "read"],
@@ -88,7 +79,6 @@ const SECTIONS: [string, HelpSection][] = [
   ["facts", "write"],
   ["actions", "write"],
   ["review", "write"],
-  ["notes links", "organise"],
   ["organizations", "organise"],
   ["invoices", "organise"],
   ["orders", "organise"],
@@ -103,7 +93,6 @@ const SECTIONS: [string, HelpSection][] = [
   ["wallets", "organise"],
   ["transactions", "organise"],
   ["records", "organise"],
-  ["import", "write"],
   ["projects", "organise"],
   ["people", "organise"],
   ["bots", "organise"],
@@ -113,13 +102,12 @@ const SECTIONS: [string, HelpSection][] = [
   ["sync", "automate"],
   ["jobs", "automate"],
   ["digest", "automate"],
-  ["folders", "setup"],
   ["groups", "setup"],
   ["config", "setup"],
   ["domain-lists", "setup"],
 ]
 
-/** Where `memo commands` lists each group; run after every command is added. */
+/** Where `wcat commands` lists each group; run after every command is added. */
 export const placeInSections = (program: Command): void => {
   for (const [path, section] of SECTIONS) {
     let command: Command | undefined = program
@@ -132,7 +120,7 @@ export const placeInSections = (program: Command): void => {
 export const commandsCommand = (program: Command, streams: Streams): void => {
   customizeSharedCommand(
     sharedCommandTemplate(APP, "commands"),
-    "Memo binds discovery to its command-local JSON renderer and scoped stored-data document format.",
+    "wcat binds discovery to its command-local JSON renderer and scoped stored-data document format.",
     () => {
       commandsCommandDefinition(program, streams)
       addContractInfo(program, (value) => streams.data(JSON.stringify(value)))

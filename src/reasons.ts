@@ -1,11 +1,11 @@
 import { defineReasons, type ErrorReason } from "@wirecat/cli-base/standards"
 
-/** The reasons memo raises itself; cli-base's and cli-core's are merged in by `failureContext`. */
+/** The reasons wcat raises itself; cli-base's and cli-core's are merged in by `failureContext`. */
 export const REASONS: ErrorReason[] = defineReasons([
   {
     reason: "backfill.no-schedule",
     code: "not_found",
-    message: "no morning-digest schedule to build from — memo skill show morning-digest says how to make one",
+    message: "no morning-digest schedule to build from — wcat skill show morning-digest says how to make one",
     details: [],
   },
   {
@@ -30,19 +30,19 @@ export const REASONS: ErrorReason[] = defineReasons([
   {
     reason: "digest.exists",
     code: "validation_error",
-    message: "a digest or schedule of that name already exists; memo digest edit changes a digest",
+    message: "a digest or schedule of that name already exists; wcat digest edit changes a digest",
     details: [],
   },
   {
     reason: "digest.not-found",
     code: "not_found",
-    message: "no digest of that name — memo digest list names them",
+    message: "no digest of that name — wcat digest list names them",
     details: [],
   },
   {
     reason: "digest.own-prompt",
     code: "validation_error",
-    message: "the digest runs a prompt of its own, made with memo schedule agent; change it there",
+    message: "the digest runs a prompt of its own, made with wcat schedule agent; change it there",
     details: [],
   },
   {
@@ -61,7 +61,7 @@ export const REASONS: ErrorReason[] = defineReasons([
   {
     reason: "source.agent-fetch",
     code: "permission_error",
-    message: "an agent over MCP cannot make memo fetch an address",
+    message: "an agent over MCP cannot make wcat fetch an address",
     details: [],
   },
   {
@@ -85,7 +85,7 @@ export const REASONS: ErrorReason[] = defineReasons([
   {
     reason: "brief.empty",
     code: "validation_error",
-    message: "the brief is empty; memo digest brief reset removes it",
+    message: "the brief is empty; wcat digest brief reset removes it",
     details: [],
   },
   {
@@ -147,7 +147,7 @@ export const REASONS: ErrorReason[] = defineReasons([
   {
     reason: "records.not-stored",
     code: "not_found",
-    message: "no record {record} from that source; memo records list shows them",
+    message: "no record {record} from that source; wcat records list shows them",
     details: ["record"],
   },
   {
@@ -177,20 +177,20 @@ export const REASONS: ErrorReason[] = defineReasons([
   {
     reason: "sync.running",
     code: "rate_limited",
-    message: "another memo sync is running (process {pid}); try again when it ends",
+    message: "another wcat sync is running (process {pid}); try again when it ends",
     details: ["pid"],
   },
   {
     reason: "folder.unbound",
     code: "configuration_error",
-    message: "the notes folder {path} has no folder id; memo folders add or memo folders update gives it one",
+    message: "the notes folder {path} has no folder id; wcat folders add or wcat folders update gives it one",
     details: ["path"],
   },
   { reason: "folder.not-found", code: "not_found", message: "the store has no such folder of notes", details: [] },
   {
     reason: "folder.overlap",
     code: "validation_error",
-    message: "{path} is inside or around {other}, which memo already reads; remove one of them first",
+    message: "{path} is inside or around {other}, which wcat already reads; remove one of them first",
     details: ["path", "other"],
   },
   {
@@ -202,13 +202,13 @@ export const REASONS: ErrorReason[] = defineReasons([
   {
     reason: "notes.folder-missing",
     code: "not_found",
-    message: "the notes folder {path} is missing — connect its disk; if it moved, memo folders update <id> <new path>",
+    message: "the notes folder {path} is missing — connect its disk; if it moved, wcat folders update <id> <new path>",
     details: ["path"],
   },
   {
     reason: "note.not-imported",
     code: "not_found",
-    message: "the note is not imported; memo sync --only notes",
+    message: "the note is not imported; wcat sync --only notes",
     details: [],
   },
   {
@@ -238,7 +238,7 @@ export const REASONS: ErrorReason[] = defineReasons([
   {
     reason: "project.not-found",
     code: "not_found",
-    message: "no such project; memo projects list shows them",
+    message: "no such project; wcat projects list shows them",
     details: [],
   },
   { reason: "person.not-found", code: "not_found", message: "the store has no person by that name", details: [] },
@@ -263,7 +263,7 @@ export const REASONS: ErrorReason[] = defineReasons([
   {
     reason: "proposal.not-people",
     code: "validation_error",
-    message: "that proposal is not about people; memo review decides it",
+    message: "that proposal is not about people; wcat review decides it",
     details: [],
   },
   {
@@ -294,7 +294,7 @@ export const REASONS: ErrorReason[] = defineReasons([
   {
     reason: "reader.none-chosen",
     code: "configuration_error",
-    message: "no reader is chosen for sources; the owner picks one with memo sources readers set <reader>",
+    message: "no reader is chosen for sources; the owner picks one with wcat sources readers set <reader>",
     details: ["readers"],
   },
   {
@@ -306,13 +306,13 @@ export const REASONS: ErrorReason[] = defineReasons([
   {
     reason: "reader.unknown",
     code: "validation_error",
-    message: "{reader} is not a reader memo knows; it reads with one of {readers}",
+    message: "{reader} is not a reader wcat knows; it reads with one of {readers}",
     details: ["reader", "readers"],
   },
   {
     reason: "reader.unavailable",
     code: "configuration_error",
-    message: "the chosen reader cannot read now; memo sources readers says why and what fixes it",
+    message: "the chosen reader cannot read now; wcat sources readers says why and what fixes it",
     details: [],
   },
   {
@@ -325,19 +325,19 @@ export const REASONS: ErrorReason[] = defineReasons([
   {
     reason: "reader.model-missing",
     code: "configuration_error",
-    message: "the reader needs a model the owner names; memo sources readers set <reader> --model <model>",
+    message: "the reader needs a model the owner names; wcat sources readers set <reader> --model <model>",
     details: [],
   },
   {
     reason: "reader.ai-not-set",
     code: "configuration_error",
-    message: "no AI model is chosen for every tool; memo models ai set <provider> --model <model> chooses one",
+    message: "no AI model is chosen for every tool; wcat models ai set <provider> --model <model> chooses one",
     details: [],
   },
   {
     reason: "reader.no-key",
     code: "authentication_error",
-    message: "no API key is kept for the reader's provider; memo models keys set <provider> keeps one",
+    message: "no API key is kept for the reader's provider; wcat models keys set <provider> keeps one",
     details: [],
   },
   {
@@ -367,7 +367,7 @@ export const REASONS: ErrorReason[] = defineReasons([
   {
     reason: "reader.unusable-answer",
     code: "invalid_response",
-    message: "the reader's answer was not the JSON memo asked for; nothing was staged, so try again",
+    message: "the reader's answer was not the JSON wcat asked for; nothing was staged, so try again",
     details: [],
   },
 ])

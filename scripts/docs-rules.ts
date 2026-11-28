@@ -4,7 +4,7 @@ import { execFileSync } from "node:child_process"
 import { join } from "node:path"
 import { type DocsRules, JOURNAL_IDS } from "@wirecat/cli-base/release"
 
-// Sections up to 0.65.2 were released with memo's own headings; a released section is never edited.
+// Sections up to 0.65.2 were released with wcat's own headings; a released section is never edited.
 export const CHANGELOG = {
   headings: ["Added", "Changed — may break callers", "Fixed", "Security", "Removed"],
   unreleased: "Unreleased",

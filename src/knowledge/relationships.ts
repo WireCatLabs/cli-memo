@@ -43,7 +43,7 @@ export interface RelationshipPage {
   page: number
   /** The accounts in scope: a source's relationship from any other is left out; the owner's are always in. */
   accounts?: AccountKey[]
-  /** Kinds memo's permissions deny: no relationship with a deal or a lead end. */
+  /** Kinds wcat's permissions deny: no relationship with a deal or a lead end. */
   deniedKinds?: string[]
 }
 

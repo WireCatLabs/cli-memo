@@ -11,8 +11,8 @@ import { createProgram } from "../program.js"
 const AGENT = { AI_AGENT: "claude-code_2-1-296_agent" }
 
 const setUp = async () => {
-  const dir = mkdtempSync(join(tmpdir(), "memo-deals-"))
-  const env: NodeJS.ProcessEnv = { ...process.env, MESSAGING_STORE: join(dir, "s.db"), MEMO_CONFIG_DIR: dir }
+  const dir = mkdtempSync(join(tmpdir(), "wcat-deals-"))
+  const env: NodeJS.ProcessEnv = { ...process.env, MESSAGING_STORE: join(dir, "s.db"), WCAT_CONFIG_DIR: dir }
   delete env.AI_AGENT
   delete env.CLAUDECODE
   const store = await openStore({ env })

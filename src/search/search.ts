@@ -20,7 +20,7 @@ import type { Note } from "@wirecat/cli-core/store/areas"
 import { APP } from "../app.js"
 import { keyDocuments, keyFirst, projectOf } from "../knowledge/key-documents.js"
 import { crmViewers as viewersOf } from "../store/crm-viewer.js"
-import { accountsByKind, groupScopeOf, MEMO_ACCOUNT, scopedAccounts } from "../store/group.js"
+import { accountsByKind, groupScopeOf, scopedAccounts, WCAT_ACCOUNT } from "../store/group.js"
 import { accountsOf } from "../store/source-list.js"
 import { taskPage } from "../tasks/context.js"
 
@@ -37,8 +37,8 @@ export interface EvidenceItem {
 
 const CHATS_CHECKED = 500
 
-/** memo's searches run as its own notes, never a stored account picked for the owner; the query sets the scope. */
-const MEMO = MEMO_ACCOUNT
+/** wcat's searches run as its own notes, never a stored account picked for the owner; the query sets the scope. */
+const MEMO = WCAT_ACCOUNT
 
 export const unifiedSearch = async (
   store: MessageStore,
@@ -302,8 +302,8 @@ export const searchEverywhere = async (
   const accounts = await scopedAccounts(store, env)
   const group = await groupScoped(store, env, only)
   const crmViewers = await viewersOf(store, accounts)
-  // Group lists belong to tg; model downloads belong to memo.
-  const messenger = { app: { ...APP, command: "tg" }, hintCommand: "memo" }
+  // Group lists belong to tg; model downloads belong to wcat.
+  const messenger = { app: { ...APP, command: "tg" }, hintCommand: "wcat" }
   // Hits a permission hides are dropped after the search, so they would already have gone to the model.
   const harderSkipped =
     harder && shows !== undefined ? "a permission hides some kinds here, so no hit was sent to the model" : undefined
@@ -320,7 +320,7 @@ export const searchEverywhere = async (
         ...(crmKinds === undefined ? {} : { crmKinds }),
         ...(source === undefined ? {} : { source }),
         ...(crmViewers.length ? { crmViewers } : {}),
-        // memo is the owner's own view of every account, personal and work alike.
+        // wcat is the owner's own view of every account, personal and work alike.
         meetingScopes: ["personal", "work"],
         ...(only?.includes("meetings") ? { meetingsAsked: true } : {}),
         ...(exact ? { exact: true } : {}),
@@ -329,7 +329,7 @@ export const searchEverywhere = async (
       },
       messenger,
       (query) => searchStore(store, MEMO, query, messenger),
-      meaningLane({ env, store: async () => store, messenger: { app: { command: "memo" } } }),
+      meaningLane({ env, store: async () => store, messenger: { app: { command: "wcat" } } }),
     )
   const searched = shows === undefined ? await ask() : await allowedPage(ask, limit, shows)
   const found = group === undefined ? searched : { ...searched, skipped: [...group.skipped, ...searched.skipped] }
@@ -389,7 +389,7 @@ export const searchKind = async (
   if (!held)
     throw new CliError(
       "not_found",
-      kind === "mail" ? "no imported mail; run memo sync --only mail" : "no stored messenger messages",
+      kind === "mail" ? "no imported mail; run wcat sync --only mail" : "no stored messenger messages",
     )
   const scope = {
     ...(accounts === undefined ? {} : { accounts }),

@@ -35,7 +35,7 @@ const LINE_PARENTS = {
   },
 } as const
 
-/** `memo orders lines` and `memo invoices lines`: what it is made of; its total is then their sum. */
+/** `wcat orders lines` and `wcat invoices lines`: what it is made of; its total is then their sum. */
 export const lineCommands = (
   parent: Command,
   kind: "order" | "invoice",

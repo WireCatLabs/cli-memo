@@ -5,7 +5,7 @@ import type { AccountKey, MessageStore, StoredAccount } from "@wirecat/cli-core/
 import type { Command } from "commander"
 import { memoListContext, scopedAccounts } from "./group.js"
 
-/** What a `--source` list names among the texts outside a chat: mailboxes, memo's notes, imported documents. */
+/** What a `--source` list names among the texts outside a chat: mailboxes, wcat's notes, imported documents. */
 export interface SourceList {
   mail: AccountKey[]
   notes: boolean
@@ -40,17 +40,17 @@ const messengers = (entry: string) =>
 
 /**
  * cli-core's four `--source` shapes through its own reader. A mailbox not in the store is refused with the ones it
- * holds; notes and documents are memo's own texts and count even before the store holds an account of them.
+ * holds; notes and documents are wcat's own texts and count even before the store holds an account of them.
  */
 const listedOf = async (store: MessageStore, env: NodeJS.ProcessEnv, value: string) => {
-  // cli-core's context: `personal` holds every account in no other group, and under MEMO_GROUP_LOCK only the group's.
+  // cli-core's context: `personal` holds every account in no other group, and under WCAT_GROUP_LOCK only the group's.
   const context = await memoListContext(store, env)
   const { held } = context
   const holdsFiles = await filesAccounts(store)
   const named = async (entry: string) => {
     const [provider = "", ...rest] = entry.trim().split(":")
     const account = rest.join(":")
-    // The store names a notes folder <provider>:<id>, and memo's own errors show that; the list reader knows notes:<row>.
+    // The store names a notes folder <provider>:<id>, and wcat's own errors show that; the list reader knows notes:<row>.
     // `folder`, every folder's provider before store version 32, is what saved commands still say.
     if (isFolderProvider(provider) && account) {
       const folder = held.find(
@@ -69,7 +69,7 @@ const listedOf = async (store: MessageStore, env: NodeJS.ProcessEnv, value: stri
   return entriesOfList((await each(value.split(","))).join(","), {
     ...context,
     groups,
-    running: { provider: "email", command: "memo" },
+    running: { provider: "email", command: "wcat" },
   })
 }
 
@@ -172,7 +172,7 @@ const storedKeysOf = async (store: MessageStore, env: NodeJS.ProcessEnv, value: 
 const noStoredAccount = (value: string) =>
   new CliError(
     "not_found",
-    `${value} names no stored account; notes written with memo notes add belong to none — name a notes folder ` +
+    `${value} names no stored account; notes written with wcat notes add belong to none — name a notes folder ` +
       "(notes:<id>), a mailbox or a messenger account",
   )
 

@@ -71,7 +71,7 @@ export const driveChanges = async (store: MessageStore, accounts: readonly Accou
   return {
     found,
     next: [
-      ...folders.map((folder) => `memo search notes 'date>${days(window)}' --source notes:${folder.id}`),
+      ...folders.map((folder) => `wcat search notes 'date>${days(window)}' --source notes:${folder.id}`),
       ...(hits.hasMore ? [`# more than ${READ} documents changed; the newest ${READ} were read`] : []),
     ],
   }
@@ -135,7 +135,7 @@ export const calendarChanges = async (store: MessageStore, accounts: readonly Ac
   return {
     found,
     next: [
-      "memo events list --json",
+      "wcat events list --json",
       ...(changed.length >= READ ? [`# more than ${READ} events changed; ${READ} were read`] : []),
     ],
   }
@@ -182,7 +182,7 @@ export const crmChanges = async (store: MessageStore, accounts: readonly Account
   return {
     found,
     next: [
-      ...(["deal", "lead"] as const).filter((kind) => kinds.has(kind)).map((kind) => `memo ${kind}s list --json`),
+      ...(["deal", "lead"] as const).filter((kind) => kinds.has(kind)).map((kind) => `wcat ${kind}s list --json`),
       ...(rows.length > READ || pages.some(({ hasMore }) => hasMore)
         ? [`# more than ${READ} CRM changes; the newest ${READ} were read`]
         : []),

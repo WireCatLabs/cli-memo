@@ -21,7 +21,7 @@ const communicationSource = async (store: MessageStore, env: NodeJS.ProcessEnv, 
     held: [held],
     profiles: {},
     groups: {},
-    running: { provider: "email", command: "memo" },
+    running: { provider: "email", command: "wcat" },
   })[0]?.accounts[0]
   const kind = listed?.kind === "messages" ? "message" : listed?.kind === "mail" ? "mail" : undefined
   if (kind === undefined)

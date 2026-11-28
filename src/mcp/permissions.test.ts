@@ -7,10 +7,10 @@ import { createProgram } from "../program.js"
 import { createMemoServer } from "./server.js"
 
 it("refuses a saved or passed permission key that names no command, with no pointer to another", () => {
-  const env = { ...process.env, MEMO_CONFIG_DIR: mkdtempSync(join(tmpdir(), "memo-permissions-")) }
+  const env = { ...process.env, WCAT_CONFIG_DIR: mkdtempSync(join(tmpdir(), "wcat-permissions-")) }
   writeFileSync(configPath(env), JSON.stringify({ permissions: { "auto.start": "deny" } }))
   expect(() => createMemoServer(env, createProgram)).toThrow(
-    `${configPath(env)}: permissions.auto.start names no command — remove it with \`memo config unset permissions.auto.start\``,
+    `${configPath(env)}: permissions.auto.start names no command — remove it with \`wcat config unset permissions.auto.start\``,
   )
 
   writeFileSync(configPath(env), JSON.stringify({ permissions: { "jobs.start": "deny", "mcp.authority": "deny" } }))

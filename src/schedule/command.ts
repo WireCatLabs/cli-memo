@@ -14,7 +14,7 @@ import { TASK_TRIAGE, taskTriageInput } from "./task-triage-input.js"
 export const MAIL_CLI = { command: "mail", appName: "mail-cli", envPrefix: "MAIL" }
 
 const runsSkill = (schedule: Schedule, skill: string) =>
-  (schedule.agent?.prompt ?? schedule.argv.join(" ")).includes(`memo skill show ${skill}`)
+  (schedule.agent?.prompt ?? schedule.argv.join(" ")).includes(`wcat skill show ${skill}`)
 
 /**
  * What an agent schedule's run reads first: a digest's caught-up agenda and past reports, the mail triage's waiting
@@ -37,8 +37,8 @@ export const agentInputOf = (env: NodeJS.ProcessEnv): AgentInput => {
 }
 
 /**
- * cli-core's `schedule`: a memo command or an agent on a timer. memo has no profiles, and its `--json` is per
- * command, as on `runs`. An agent's run is allowed `Bash(memo:*)` and `Bash(mail:*)` under MEMO_READ_ONLY and
+ * cli-core's `schedule`: a wcat command or an agent on a timer. wcat has no profiles, and its `--json` is per
+ * command, as on `runs`. An agent's run is allowed `Bash(wcat:*)` and `Bash(mail:*)` under WCAT_READ_ONLY and
  * MAIL_READ_ONLY, so the mail triage can read mail and add an envelope rule for one sender. `--on-new-mail <holder>`
  * starts the agent only when some mailbox holds mail past that holder's mark, and enough of it — the config file's
  * `schedule_mail_wait` and `schedule_mail_batch` — so a quiet 5-minute check costs no model call.
@@ -60,7 +60,7 @@ export const scheduleCommand = (env: NodeJS.ProcessEnv): Command => {
   for (const one of schedule.commands)
     overrideSharedContract(
       one,
-      "Memo's output flag is command-local because this provider does not use the messenger program shell.",
+      "wcat's output flag is command-local because this provider does not use the messenger program shell.",
       (command) => {
         command.option("--json", "print JSON")
       },
@@ -68,7 +68,7 @@ export const scheduleCommand = (env: NodeJS.ProcessEnv): Command => {
   for (const one of schedule.commands.filter((command) => ["run", "exec"].includes(command.name())))
     overrideSharedContract(
       one,
-      "A memo schedule runs memo, which writes to no remote service, or an agent allowed only memo and mail, each read-only.",
+      "A wcat schedule runs wcat, which writes to no remote service, or an agent allowed only wcat and mail, each read-only.",
       (command) => {
         annotate(command, { effects: LOCAL_WRITE })
       },

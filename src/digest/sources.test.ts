@@ -19,16 +19,16 @@ afterEach(() => {
 })
 
 const setUp = async (crm: FakeCrmSourceOptions = {}) => {
-  const root = mkdtempSync(join(tmpdir(), "memo-digest-sources-"))
+  const root = mkdtempSync(join(tmpdir(), "wcat-digest-sources-"))
   const env: NodeJS.ProcessEnv = {
     ...process.env,
     MESSAGING_STORE: join(root, "s.db"),
-    MEMO_CONFIG_DIR: join(root, "config"),
+    WCAT_CONFIG_DIR: join(root, "config"),
     XDG_DATA_HOME: join(root, "data"),
     XDG_CONFIG_HOME: join(root, "xdg-config"),
   }
-  delete env.MEMO_GROUP
-  delete env.MEMO_GROUP_LOCK
+  delete env.WCAT_GROUP
+  delete env.WCAT_GROUP_LOCK
   const now = Date.now()
   let driveId = ""
   const store = await openStore({ env })

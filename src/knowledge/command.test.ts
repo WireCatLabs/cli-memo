@@ -6,11 +6,12 @@ import { formatLocator } from "@wirecat/cli-core"
 import { openStore } from "@wirecat/cli-core/store"
 import { describe, expect, it } from "vitest"
 import { answerOf } from "../../test/answer.js"
+import { addNote } from "../../test/notes.js"
 import { createProgram } from "../program.js"
 
 describe("combined evidence, relationships and local reminders", () => {
   it("keeps shared-group tasks unrelated unless assigned, exposes source evidence, and delivers a local reminder once acknowledged", async () => {
-    const root = mkdtempSync(join(tmpdir(), "memo-context-work-")),
+    const root = mkdtempSync(join(tmpdir(), "wcat-context-work-")),
       env = { ...process.env, MESSAGING_STORE: join(root, "store.db") }
     const key = { provider: "telegram", account: "1" }
     const store = await openStore({ env })
@@ -93,7 +94,7 @@ describe("combined evidence, relationships and local reminders", () => {
     expect((await run("relationships", "list", `about:"${harbour.ref}"`)).items).toMatchObject([{ to: harbour.ref }])
     expect((await run("relationships", "list")).items).toHaveLength(2)
     expect((await run("projects", "list")).items.map(({ id }: { id: string }) => id)).toContain(harbour.id)
-    const analysis = await run("notes", "add", "Owner budget analysis", "--subject", source(key, "77", "4"))
+    const analysis = await addNote(env, "Owner budget analysis", { subject: [source(key, "77", "4")] })
     await run("tags", "add", "project", "--task", document.task.id, ...acts)
     expect(
       (await run("tags", "list", "tag:project", ...scope)).items.find(({ type }: { type: string }) => type === "task"),
@@ -159,7 +160,7 @@ describe("combined evidence, relationships and local reminders", () => {
 
 describe("project context", () => {
   it("finds a project by its exact name or alias as well as its key and id", async () => {
-    const root = mkdtempSync(join(tmpdir(), "memo-project-key-")),
+    const root = mkdtempSync(join(tmpdir(), "wcat-project-key-")),
       env = { ...process.env, MESSAGING_STORE: join(root, "store.db") }
     const run = async (...args: string[]) => {
       const streams = captureStreams()
@@ -185,7 +186,7 @@ describe("project context", () => {
   })
 
   it("refuses an ambiguous project name and keeps explicit keys available", async () => {
-    const root = mkdtempSync(join(tmpdir(), "memo-ambiguous-project-")),
+    const root = mkdtempSync(join(tmpdir(), "wcat-ambiguous-project-")),
       env = { ...process.env, MESSAGING_STORE: join(root, "store.db") }
     const run = async (...args: string[]) => {
       const streams = captureStreams()
@@ -210,7 +211,7 @@ describe("project context", () => {
   })
 
   it("finds an organization by organization:<id> as well as its id", async () => {
-    const root = mkdtempSync(join(tmpdir(), "memo-organization-ref-")),
+    const root = mkdtempSync(join(tmpdir(), "wcat-organization-ref-")),
       env = { ...process.env, MESSAGING_STORE: join(root, "store.db") }
     const run = async (...args: string[]) => {
       const streams = captureStreams()
@@ -228,7 +229,7 @@ describe("project context", () => {
   })
 
   it("refuses a project or organization the store does not hold", async () => {
-    const root = mkdtempSync(join(tmpdir(), "memo-unknown-ref-")),
+    const root = mkdtempSync(join(tmpdir(), "wcat-unknown-ref-")),
       env = { ...process.env, MESSAGING_STORE: join(root, "store.db") }
     const run = (...args: string[]) =>
       createProgram({ streams: captureStreams(), env }).parseAsync(args, { from: "user" })
@@ -245,7 +246,7 @@ describe("project context", () => {
 })
 
 it("queries organization, project and key-document fields through their native readers", async () => {
-  const root = mkdtempSync(join(tmpdir(), "memo-list-query-"))
+  const root = mkdtempSync(join(tmpdir(), "wcat-list-query-"))
   const env = { ...process.env, MESSAGING_STORE: join(root, "store.db") }
   const store = await openStore({ env })
   const org = await store.knowledge.addOrganization({ name: "Synthetic Studio", kind: "company", scope: "work" })

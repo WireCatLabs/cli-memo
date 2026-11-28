@@ -13,7 +13,6 @@ import { whoRuns } from "../author.js"
 import { SHELL_OVERRIDES } from "../contract-overrides.js"
 import { memoLevels } from "../mcp/permissions.js"
 import { searchMemoriesCommand } from "../memories/command.js"
-import { searchText } from "../notes/search.js"
 import { positive } from "../options.js"
 import { SAVE_HELP } from "../save-help.js"
 import { crmNotes } from "../store/crm-viewer.js"
@@ -22,6 +21,7 @@ import { ACCOUNTS_HELP, MAIL_SOURCES, mailboxesOf } from "../store/source-list.j
 import { allAnswer, eventsMeaningNote, harderNote, kindAnswer, messagesMeaningNote, notesAnswer } from "./answers.js"
 import { deniedCrm } from "./denied.js"
 import { lanesFor } from "./lane-gates.js"
+import { searchText } from "./notes-text.js"
 import { peopleAnswer, peopleText, searchPeople } from "./people.js"
 import { hasSource, keyDocumentsFirst, searchEverywhere, searchKind, searchNotes } from "./search.js"
 
@@ -104,7 +104,7 @@ const searchCommandDefinition = (program: Command, streams: Streams, env: NodeJS
     annotate(group.command("all"), { effects: LOCAL_READ, output: { entity: "hit" } })
       .description(
         "messages, mail, notes, calendar events, deals, leads, business data, meeting passages from every meeting " +
-          "account and tracker issues and projects, ranked together; not people, memories, memo's projects or " +
+          "account and tracker issues and projects, ranked together; not people, memories, wcat's projects or " +
           "decisions. A kind you know reads better with its own search, with all its fields",
       )
       .summary("messages, mail, notes, events, deals, meetings and issues ranked together"),
@@ -119,13 +119,13 @@ const searchCommandDefinition = (program: Command, streams: Streams, env: NodeJS
     .option(
       "--harder",
       "a hosted model reorders the first 30 hits; sends the question and those hits to the provider you chose with " +
-        "memo models search-consents set <provider> --yes, only after that",
+        "wcat models search-consents set <provider> --yes, only after that",
     )
     .option("--project <project>", PROJECT_ORDER_HELP)
     .addHelpText(
       "after",
       `
-content: narrows a search to the text of files, transcript: to voice transcripts, filename: to file names — memo search all 'content:invoice'.
+content: narrows a search to the text of files, transcript: to voice transcripts, filename: to file names — wcat search all 'content:invoice'.
 Calendar events come from every calendar gcal stored; an event's title, description and place are written by whoever sent the invitation.
 crm finds deals and leads by the words of their title only.
 business finds invoices, payments, orders, contracts, subscriptions, products and wallets by the words of their numbers and names.
@@ -222,15 +222,15 @@ tracker finds issues, projects and comments a tracker CLI such as linear synced;
       "after",
       kind === "messages"
         ? `
-content: narrows a search to the text of files, transcript: to voice transcripts, filename: to file names — memo search messages
+content: narrows a search to the text of files, transcript: to voice transcripts, filename: to file names — wcat search messages
 'content:invoice'. Compare it with tg search messages 'content:invoice', a plain word with a plain word.
-has:voice, has:file or NOT has:attachment keeps voice messages, files or plain text — memo search messages 'friday has:voice'.
-A question finds messages holding some of its words, and a short reply by the message it answers — memo search messages
+has:voice, has:file or NOT has:attachment keeps voice messages, files or plain text — wcat search messages 'friday has:voice'.
+A question finds messages holding some of its words, and a short reply by the message it answers — wcat search messages
 'when is the price sync?'. Plain words must all be in the message; --exact keeps a question to that too.
 --json: the list is items, each a hit as in tg search messages: ref (msg:…), timestamp, sender_name, excerpt.
 For an agent: read with --compact, one line per hit with its reference. Never write message text to a file.`
         : `
-content: narrows a search to the text of attachments, filename: to their names — memo search mail 'content:invoice'.
+content: narrows a search to the text of attachments, filename: to their names — wcat search mail 'content:invoice'.
 Mail sent to many is in the mailbox bulk; NOT mailbox:bulk leaves it out, and bills and bookings with it.
 Mail from senders with signs of fraud (mail <profile> account inspect) comes after the rest of the page; --plain-order keeps it in place.
 --json: the list is items, each a hit as in tg search mail: ref (msg:email/…), timestamp, email, excerpt.
@@ -287,7 +287,7 @@ For an agent: read with --compact, one line per hit with its reference. Never wr
   )
     .addHelpText(
       "after",
-      "\nsource:internal keeps the notes written in memo, source:file the notes from a folder — 'budget source:internal'." +
+      "\nsource:internal keeps the notes written in wcat, source:file the notes from a folder — 'budget source:internal'." +
         "\n--source notes:<folder id> is different: it chooses which notes accounts are read." +
         "\nFields in the query or in --filter (tag:, date:) hold for every hit, found by words or by meaning; a query of" +
         "\nfields alone lists the matching notes, newest first — 'budget tag:work', 'date:today'." +
@@ -296,7 +296,7 @@ For an agent: read with --compact, one line per hit with its reference. Never wr
     .option("--filter <query>", "another query every note must match")
     .option(
       "--source <accounts>",
-      "only these notes accounts, separated by commas: notes:internal for notes written in memo, notes:<folder id> " +
+      "only these notes accounts, separated by commas: notes:internal for notes written in wcat, notes:<folder id> " +
         "as a hit shows it, notes or group:<name>",
     )
     .option("--page <n>", "which page, from 1", positive, 1)
@@ -367,7 +367,7 @@ For an agent: read with --compact, one line per hit with its reference. Never wr
 export const searchCommand = (...args: Parameters<typeof searchCommandDefinition>) =>
   customizeSharedCommand(
     sharedCommandTemplate(APP, "search"),
-    "Memo searches imported accounts, mail and native notes without a live messenger; its scope, ranking and output controls are explicit provider differences.",
+    "wcat searches imported accounts, mail and native notes without a live messenger; its scope, ranking and output controls are explicit provider differences.",
     () => {
       searchCommandDefinition(...args)
       const command = args[0].commands.find((command) => command.name() === "search")

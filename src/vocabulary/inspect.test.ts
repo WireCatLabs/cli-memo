@@ -12,7 +12,7 @@ import { createMemoServer } from "../mcp/server.js"
 import { createProgram } from "../program.js"
 
 const fixture = async () => {
-  const env = { ...process.env, MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "memo-tag-inspect-")), "fixture.db") }
+  const env = { ...process.env, MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "wcat-tag-inspect-")), "fixture.db") }
   const store = await openStore({ env })
   try {
     const source = await store.knowledge.createTag("arrival")
@@ -91,7 +91,7 @@ it("serves a read-only MCP preview and names unknown fields in the handler's val
   const client = new Client({ name: "fixture", version: "0" })
   await client.connect(clientSide)
   try {
-    const tool = (await client.listTools()).tools.find((tool) => tool.name === "memo_read")
+    const tool = (await client.listTools()).tools.find((tool) => tool.name === "wcat_read")
     expect(tool?.annotations).toMatchObject({ readOnlyHint: true, destructiveHint: false, openWorldHint: true })
     expect(await commandSchema(client, "vocabulary inspect")).toMatchObject({ additionalProperties: false })
     const call = (fields: Record<string, unknown>) =>

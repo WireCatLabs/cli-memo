@@ -74,7 +74,7 @@ export interface Coverage {
 
 export const SCOPE_KINDS = ["telegram", "max", "whatsapp", "mail", "meeting", "task"] as const
 
-/** What the digest read, for the report's "what was viewed" line: memo counts it, the agent copies it. */
+/** What the digest read, for the report's "what was viewed" line: wcat counts it, the agent copies it. */
 export interface Scope {
   from: string
   to: string
@@ -106,7 +106,7 @@ export interface DigestOptions {
   limit: number
   /** Characters per excerpt. */
   excerpt: number
-  /** ms: an owed reply older than this is left to `tasks agenda` and `mail review`. */
+  /** ms: an owed reply older than this is left to `tasks agenda` and `review mail`. */
   owedWithin: number
   /** Tasks created after this are new; the previous run of the running digest when left out. */
   newSince?: string
@@ -367,7 +367,7 @@ export const gatherDigest = async (
       owedHere++
     }
     if (owedHere)
-      owedNext.push(`memo tasks agenda --source ${name(key)} --unanswered 1m --within ${Math.ceil(owedWithin / DAY)}d`)
+      owedNext.push(`wcat tasks agenda --source ${name(key)} --unanswered 1m --within ${Math.ceil(owedWithin / DAY)}d`)
     for (const chatId of watched.chats.get(name(key)) ?? []) {
       const page = await store.messages.messages(key, chatId, {
         limit,
@@ -458,9 +458,9 @@ export const gatherDigest = async (
     for (const one of strangers)
       mail.push({ ...one.pending, item: { ...one.pending.item, why: "owed reply, new sender" } })
     unknown.count += strangers.length
-    if (owedHere) owedNext.push(`memo mail review --source ${name(key)} --unanswered 1m bulk:false`)
-    if (strangers.length) unknown.next.push(`memo mail review --source ${name(key)} --unanswered 1m bulk:false`)
-    if (newHere) mailNext.push(`memo mail review --source ${name(key)} date>${days} bulk:false`)
+    if (owedHere) owedNext.push(`wcat review mail --source ${name(key)} --unanswered 1m bulk:false`)
+    if (strangers.length) unknown.next.push(`wcat review mail --source ${name(key)} --unanswered 1m bulk:false`)
+    if (newHere) mailNext.push(`wcat review mail --source ${name(key)} date>${days} bulk:false`)
   }
 
   for (const uid of watched.people) {
@@ -559,7 +559,7 @@ export const gatherDigest = async (
     )
     const isWatched = watched.projects.has(project.id) || watched.projects.has(project.ref)
     if (fresh.length === 0 && !isWatched) continue
-    projectNext.push(`memo projects status ${project.key ?? project.ref} --since-time ${days}`)
+    projectNext.push(`wcat projects status ${project.key ?? project.ref} --since-time ${days}`)
     if (fresh.length === 0)
       projects.push({
         item: { ref: project.ref, who: null, at: iso(since), excerpt: project.name, why: "watched project, quiet" },
@@ -624,7 +624,7 @@ export const gatherDigest = async (
       }
     })
   const proposalsNext = [
-    "memo review list",
+    "wcat review list",
     ...(withTasks.tasks > 0
       ? [
           REVIEW_TASKS,
@@ -643,8 +643,8 @@ export const gatherDigest = async (
 
   const sections = [
     await section("watch", upTo(watch), limit, [
-      "memo tags list tag:watch",
-      ...[...watched.people].map((uid) => `memo context person:${uid}`),
+      "wcat tags list tag:watch",
+      ...[...watched.people].map((uid) => `wcat context person:${uid}`),
     ]),
     {
       ...(await section("owed", upTo(owed), limit, [
@@ -657,17 +657,17 @@ export const gatherDigest = async (
       ...mailNext,
       ...(bulk ? [`# ${bulk} bulk or list threads left out`] : []),
     ]),
-    await section("meetings", upTo(meetings), limit, ["memo search meetings <words>"]),
+    await section("meetings", upTo(meetings), limit, ["wcat search meetings <words>"]),
     await section("calendar", calendar.found, limit, calendar.next),
     await section("drive", drive.found, limit, drive.next),
     await section("crm", crm.found, limit, crm.next),
-    await section("tasks", tasks, limit, ["memo tasks list", ...taskNotes]),
+    await section("tasks", tasks, limit, ["wcat tasks list", ...taskNotes]),
     await section("projects", upTo(projects), limit, projectNext),
     await section("sources", sourceItems, limit, [
       REVIEW_SOURCES,
       ...(reviewCount > 0 ? [`# decide them: ${REVIEW_SOURCES}`] : []),
       ...(sourceItems.length > reviewCount
-        ? [`# read changed sources again: memo memories check --since-time ${days} --json`]
+        ? [`# read changed sources again: wcat memories check --since-time ${days} --json`]
         : []),
     ]),
     await section("proposals", upTo(proposals), limit, proposalsNext, waiting.total),

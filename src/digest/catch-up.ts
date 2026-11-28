@@ -11,7 +11,7 @@ const TOOLS = [...MESSENGER_TOOLS, { tool: "mail", appName: "mail-cli", envPrefi
 export const CATCH_UP_MS = 4 * 60_000
 /** A sync that succeeded this recently is not run again. */
 export const FRESH_MS = 60 * 60_000
-/** A run record's reason, not an error memo raises. */
+/** A run record's reason, not an error wcat raises. */
 const NOT_INSTALLED = "catch-up.not-installed"
 /** Leaves a sync time to save its last page and exit before the budget ends. */
 const MARGIN_MS = 10_000
@@ -39,7 +39,7 @@ export interface CatchUpOptions {
 /**
  * Before a digest reads the store, runs again each sync the owner put on a timer in tg, max, wa and mail, so the
  * digest reads this morning's messages and not the night's. Each runs as its schedule says: its argv, its variables,
- * its profile; memo picks no profile and syncs no account the owner gave no schedule. A sync that succeeded within
+ * its profile; wcat picks no profile and syncs no account the owner gave no schedule. A sync that succeeded within
  * `freshMs` is left alone; the tools run side by side, a tool's schedules one after another, all within `budgetMs`.
  */
 export const catchUp = async (

@@ -86,7 +86,7 @@ const batchOf = async (store: MessageStore, action: ProposedAction) => {
   return { fingerprint: null }
 }
 
-/** What memo calls each target: a project, person, task, or the chat of a message; read once for a whole answer. */
+/** What wcat calls each target: a project, person, task, or the chat of a message; read once for a whole answer. */
 const targetNames = async (store: MessageStore, actions: readonly ProposedAction[]) => {
   const names = new Map<string, string>()
   const chats = new Map<string, string>()
@@ -113,14 +113,14 @@ const targetNames = async (store: MessageStore, actions: readonly ProposedAction
 
 type StoreSource = Awaited<ReturnType<MessageStore["evidenceFindings"]["sources"]>>[number]
 
-/** A source a finding cites, read back; cli-core's store entry exports no name for it, and memo's answers need one. */
+/** A source a finding cites, read back; cli-core's store entry exports no name for it, and wcat's answers need one. */
 export interface CitedSource extends StoreSource {}
 
 const citedSources = (store: MessageStore, id: string): Promise<CitedSource[]> =>
   store.evidenceFindings.sources(id).catch(() => [])
 
 /**
- * An action as memo answers it: what it would do in a sentence, the project it is about with its name, and for a
+ * An action as wcat answers it: what it would do in a sentence, the project it is about with its name, and for a
  * findings batch the fingerprint a decision needs and, unless brief, each cited source read back.
  */
 export const actionItems = async (

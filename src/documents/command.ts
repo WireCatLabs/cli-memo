@@ -1,5 +1,6 @@
+import { readFileSync } from "node:fs"
 import { join, relative } from "node:path"
-import type { Streams } from "@wirecat/cli-base"
+import { resolvePaths, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
 import { isFolderProvider } from "@wirecat/cli-core"
 import { DOCUMENTS_LIST_QUERY, documentListRequest, LOCAL_READ, withQuery } from "@wirecat/cli-core/cli"
@@ -7,8 +8,7 @@ import { type DocumentEntry, listDocumentSources, listDocuments, showDocument } 
 import type { MessageStore } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { answers, itemAnswer, listAnswer, plainText, withStore } from "../answer.js"
-import { loadConfig } from "../config.js"
-import { noteFolders } from "../notes/folders.js"
+import { configPath } from "../config.js"
 import { between, collect, positive } from "../options.js"
 
 const NOTE =
@@ -16,14 +16,28 @@ const NOTE =
   "Newest change first; a text term keeps that order among what the notes search found. meta.accounts names what " +
   "was read."
 
+/** The folders with an id in a config file's `notes.folders`, by id; nothing when the file does not read. */
+const folderRoots = (file: string): [string, string][] => {
+  try {
+    const folders = (JSON.parse(readFileSync(file, "utf8")) as { notes?: { folders?: unknown } }).notes?.folders
+    return Array.isArray(folders)
+      ? folders.flatMap((folder) =>
+          folder && typeof folder.id === "string" && typeof folder.path === "string" ? [[folder.id, folder.path]] : [],
+        )
+      : []
+  } catch {
+    return []
+  }
+}
+
 /**
- * A notes folder's file opens from where the folder is on this computer, which only memo's config knows. The config
- * names a folder by its stored account id; a row names its account as provider:account.
+ * A notes folder's file opens from where the folder is on this computer, which only the files CLI's config knows, or
+ * wcat's own from before files took it over. The config names a folder by its stored account id; a row names its
+ * account as provider:account.
  */
 const withLocalPaths = async (env: NodeJS.ProcessEnv, store: MessageStore) => {
-  const roots = new Map(
-    noteFolders(loadConfig(env).notes).flatMap(({ id, path }) => (id === null ? [] : [[id, path] as const])),
-  )
+  const files = join(resolvePaths({ appName: "files-cli", prefix: "FILES", env }).config, "config.json")
+  const roots = new Map([...folderRoots(configPath(env)), ...folderRoots(files)])
   const folders = new Map<string, string>(
     (await store.listings.documentAccounts()).flatMap(({ id, provider, account }) => {
       const root = roots.get(String(id))

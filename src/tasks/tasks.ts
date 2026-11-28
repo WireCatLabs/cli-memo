@@ -11,7 +11,7 @@ import { type AccountKey, type MessageStore, type TaskState, WORK_TASK_TYPES } f
 import type { TaskFields, TaskRole, TaskType, WorkTaskType } from "@wirecat/cli-core/store/areas"
 import { APP } from "../app.js"
 import { authorOf } from "../author.js"
-import { isNoteReference } from "../notes/about.js"
+import { isNoteReference } from "../knowledge/notes-about.js"
 import { refuseBareNumber } from "../refs.js"
 import { heldMessage } from "../store/held.js"
 import { type AccountScope, selectAccount } from "../store/scope.js"

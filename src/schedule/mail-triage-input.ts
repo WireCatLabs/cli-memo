@@ -87,7 +87,7 @@ const lines = (
     ...(items.some((item) => item.text_cut)
       ? [
           "text_cut: only the start of that email's text fits here; read it whole with " +
-            "`memo messages show '<ref>' --trimmed --json` before you stage a finding from it",
+            "`wcat messages show '<ref>' --trimmed --json` before you stage a finding from it",
         ]
       : []),
     items.length ? "emails, one JSON per line:" : "no emails; acknowledge the cursor.",
@@ -162,8 +162,8 @@ export const mailboxBlock = (source: string, review: Review, room = Number.POSIT
 
 const PREAMBLE =
   "Your first reads are below, already done: the mail-triage skill and each mailbox's review. Do not run " +
-  "`memo skill show` or `memo mail review`. Start at step 2 of the skill. Stage each mailbox's findings in ONE " +
-  "`memo mail findings add` call, all mailboxes in the same turn, without `--dry-run`. Then acknowledge each " +
+  "`wcat skill show` or `wcat review mail`. Start at step 2 of the skill. Stage each mailbox's findings in ONE " +
+  "`wcat review findings add` call, all mailboxes in the same turn, without `--dry-run`. Then acknowledge each " +
   'mailbox\'s cursor (also a mailbox with nothing to stage) except one marked "do not acknowledge", then write the report.'
 
 /**
@@ -183,7 +183,7 @@ export const mailTriageInput =
     for (const address of await mailboxes()) {
       const source = `email:${address}`
       const review = JSON.parse(
-        await run(["mail", "review", "--holder", holder, "--source", source, `--json=${FIELDS}`]),
+        await run(["review", "mail", "--holder", holder, "--source", source, `--json=${FIELDS}`]),
       ) as Review
       const block = mailboxBlock(source, review, INPUT_BUDGET - used - separator.length, alone)
       parts.push(block)

@@ -13,8 +13,8 @@ import { createMemoServer } from "../mcp/server.js"
 import { createProgram } from "../program.js"
 
 const fixture = async () => {
-  const root = mkdtempSync(join(tmpdir(), "memo-preparation-"))
-  const env = { ...process.env, MESSAGING_STORE: join(root, "store.db"), MEMO_CONFIG_DIR: join(root, "config") }
+  const root = mkdtempSync(join(tmpdir(), "wcat-preparation-"))
+  const env = { ...process.env, MESSAGING_STORE: join(root, "store.db"), WCAT_CONFIG_DIR: join(root, "config") }
   const store = await openStore({ env })
   try {
     const key = { provider: "example", account: "synthetic" }

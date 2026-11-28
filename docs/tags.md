@@ -21,16 +21,16 @@ Tags live in the local store: your files, your Gmail labels and your mailbox sta
 **The easiest way: ask your agent.**
 
 ```text prompt
-Use memo CLI to tag the notes about the Harbour budget with follow-up.
+Use wcat CLI to tag the notes about the Harbour budget with follow-up.
 Show me which notes you tagged.
 ```
 
 **Or run the commands yourself.** First find the reference of what you want to tag, for example
-with `memo search notes budget`. Then:
+with `wcat search notes budget`. Then:
 
 ```sh
-memo tags add follow-up --note document:3
-memo tags add work follow-up --note note:12      # two tags at once
+wcat tags add follow-up --note document:3
+wcat tags add work follow-up --note note:12      # two tags at once
 ```
 
 A tag has 1 to 32 characters: letters a–z, digits and hyphens. Capital letters are ignored, so
@@ -50,7 +50,7 @@ A tag has 1 to 32 characters: letters a–z, digits and hyphens. Capital letters
 | An organization, a project or a task | `--organization 2`, `--project 1`, `--task HRB-1` |
 | A meeting | `--meeting 5 --account zoom:ACCOUNT` |
 
-The folder ID comes from `memo folders list`. A tag on a folder applies to every note in it, at any
+The folder ID comes from `files folders list`. A tag on a folder applies to every note in it, at any
 depth, including notes you add later.
 
 A chat, a contact and a meeting belong to one account, so they need `--account`. A
@@ -64,39 +64,39 @@ Tags written in your note files are imported with the notes:
 - In an Obsidian folder, also `#tags` in the text.
 
 If you remove a tag from the file, it is removed from the note on the next import, unless you also
-added the same tag in Memo. `memo tags list` shows `(file)` next to tags that came from a file.
+added the same tag in wcat. `wcat tags list` shows `(file)` next to tags that came from a file.
 
 ## Find things by tag
 
 ```sh
-memo tags list tag:follow-up               # everything with this tag
-memo search notes 'budget' --filter 'tag:work'  # notes with the tag that contain a word
-memo search all 'tag:follow-up'             # messages, mail and notes with the tag
-memo tags list                              # every tag, up to 100
+wcat tags list tag:follow-up               # everything with this tag
+wcat search notes 'budget' --filter 'tag:work'  # notes with the tag that contain a word
+wcat search all 'tag:follow-up'             # messages, mail and notes with the tag
+wcat tags list                              # every tag, up to 100
 ```
 
-`memo tags list` shows 100 tags at a time; add `--limit 500` to see more. `type:note` or
+`wcat tags list` shows 100 tags at a time; add `--limit 500` to see more. `type:note` or
 `type:person` shows only one kind.
 
 ## The watch list
 
-The tag `watch` marks what the morning digest must never miss. `memo review agenda` shows everything new in a
+The tag `watch` marks what the morning digest must never miss. `wcat review agenda` shows everything new in a
 watched chat or mail thread, every chat a watched person wrote in, each watched project even when it was quiet, and
 the meetings of a watched meeting's series. It also lists replies owed to people (bots and service chats are left
 out), the tasks created since the last morning digest and those overdue, due today or tomorrow, and each account
 whose sync failed, that nothing syncs, or that has been quiet for longer than usual.
 
 ```sh
-memo tags add watch --chat 12345 --account telegram:1   # a chat or a mail thread
-memo tags add watch --person 01J8…                      # a person, in every account
-memo tags add watch --project HRB                       # a project
-memo review agenda --compact                            # the digest an agent reads
+wcat tags add watch --chat 12345 --account telegram:1   # a chat or a mail thread
+wcat tags add watch --person 01J8…                      # a person, in every account
+wcat tags add watch --project HRB                       # a project
+wcat review agenda --compact                            # the digest an agent reads
 ```
 
 ## Remove a tag
 
 ```sh
-memo tags remove follow-up --note document:3
+wcat tags remove follow-up --note document:3
 ```
 
 Removing a tag leaves the note, message or person as it is. Removing a tag that is not there changes
@@ -111,16 +111,16 @@ Review our tags for likely synonyms. Show the canonical names and aliases first.
 I select, inspect their assignments and overlaps. Do not create aliases or merge anything.
 ```
 
-`memo vocabulary check --limit 20 --json` suggests lexical matches. Similar names are candidates
+`wcat vocabulary check --limit 20 --json` suggests lexical matches. Similar names are candidates
 to review; they are not proof that two concepts are the same. Existing aliases are alternate names
 for one canonical record, so reuse them before creating another tag.
 
-Run `memo vocabulary list --json` to read the canonical IDs and current fingerprint. Then select
+Run `wcat vocabulary list --json` to read the canonical IDs and current fingerprint. Then select
 two **tag** entries explicitly. Replace `FINGERPRINT` below with the fingerprint from that unfiltered
 list, `tag:1` with the duplicate you are reviewing, and `tag:2` with the name you would keep:
 
 ```sh
-memo vocabulary inspect tag:1 tag:2 --fingerprint FINGERPRINT --limit 5 --json
+wcat vocabulary inspect tag:1 tag:2 --fingerprint FINGERPRINT --limit 5 --json
 ```
 
 This reports each tag's assignments by target type, overlapping targets, aliases, automatic claims
@@ -137,14 +137,14 @@ If the vocabulary changed, list it again and reselect the pair; do not reuse the
 
 `coverage.inspected_tables` names the four covered tables: assignments, aliases, automatic claims
 and links. Saved search text, proposal history and arbitrary serialized references are outside this
-preview. `coverage.apply_supported` is true: cli-core can apply such a preview, but memo has no
+preview. `coverage.apply_supported` is true: cli-core can apply such a preview, but wcat has no
 command that does. Topics and projects are refused. A preview fingerprint grants no permission to
 merge. Existing owner-reviewed alias commands remain separate.
 
 ## Tags and tg or max
 
 tg and max read the same tags: `tg personal search messages 'tag:follow-up'` finds tagged Telegram messages, and
-`memo search mail 'tag:follow-up'` finds tagged mail. Tags on a contact are also available through `tg personal tags` and
+`wcat search mail 'tag:follow-up'` finds tagged mail. Tags on a contact are also available through `tg personal tags` and
 `max personal tags`.
 
 Next: [search by tag and by words](search.md).

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest"
 import { snakeKeys } from "./output.js"
 
 describe("snakeKeys", () => {
-  it("spells memo's keys snake_case at every depth and keeps the owner's own keys as written", () => {
+  it("spells wcat's keys snake_case at every depth and keeps the owner's own keys as written", () => {
     expect(
       snakeKeys({
         hasMore: true,

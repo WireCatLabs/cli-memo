@@ -7,28 +7,17 @@ import {
   type Streams,
 } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
-import { FETCH, notLocalPaths, parseDuration, setExitCode } from "@wirecat/cli-core/cli"
+import { FETCH, parseDuration, setExitCode } from "@wirecat/cli-core/cli"
 import { attachmentMaxBytes, sizeText } from "@wirecat/cli-core/documents"
 import { markStoreDamaged, openStore, type SourceCheck, storePath } from "@wirecat/cli-core/store"
-import { type Command, InvalidArgumentError, Option } from "commander"
+import { type Command, InvalidArgumentError } from "commander"
 import { answers, itemAnswer } from "../answer.js"
 import { APP, STORE_CLIENT } from "../app.js"
 import { decisionPolicy, loadConfig } from "../config.js"
 import { errorObject } from "../failure.js"
-import { boundFolders, UNBOUND, unboundReason } from "../notes/bound.js"
-import {
-  combinedEnrichment,
-  type EnrichmentReport,
-  embedMailChunks,
-  embedNoteChunks,
-  type NoteChunksEmbedded,
-} from "../notes/embed.js"
-import { noteFolders } from "../notes/folders.js"
-import { importNotes, type NotesImport } from "../notes/import.js"
-import { collect } from "../options.js"
-import { importNotesMap } from "../people/notes-map.js"
-import { progressLine } from "../progress.js"
+import { combinedEnrichment, type EnrichmentReport, embedMailChunks, type NoteChunksEmbedded } from "../search/embed.js"
 import { applyAuto, autoState, recordAutoRun } from "./auto.js"
+import { type FilesSync, filesSync, type NotesImport } from "./files.js"
 import { withImportLock } from "./lock.js"
 
 // An unexpected crash has no standard code to name it by; it still leaves the answer incomplete.
@@ -38,8 +27,9 @@ const issuesOf = (failed: ImportRun["failed"]) =>
   )
 
 export interface ImportRun {
+  /** What `wcat-files sync` brought in from the notes folders; empty when files is not installed. */
   notes: NotesImport[]
-  /** The notes' chunks embedded for search by meaning this run. */
+  /** The notes' chunks embedded for search by meaning this run, as `wcat-files sync` reported them. */
   notesEmbedded?: Omit<NoteChunksEmbedded, "enrichment">
   /** The chunks of mail already in the store, which the `mail` CLI syncs, embedded for search by meaning this run. */
   mailEmbedded?: Omit<NoteChunksEmbedded, "enrichment">
@@ -93,15 +83,15 @@ const text = (run: ImportRun): string =>
     ...(run.enrichment === undefined ? [] : [enrichmentLine(run.enrichment)]),
     ...(run.people === undefined || run.people.merged + run.people.proposed === 0
       ? []
-      : [`people: ${run.people.merged} joined, ${run.people.proposed} new matches — memo people review`]),
+      : [`people: ${run.people.merged} joined, ${run.people.proposed} new matches — wcat people review`]),
     ...run.failed.map(({ source, reason }) => `failed ${source}: ${reason}`),
     ...(run.sourceCheck?.raised
       ? [
-          `memories follow sources: ${run.sourceCheck.raised} raised for review — memo review list kind:memory_source_review`,
+          `memories follow sources: ${run.sourceCheck.raised} raised for review — wcat review list kind:memory_source_review`,
         ]
       : []),
     ...(run.sourceCheckFailed ? [`memories follow sources not checked: ${run.sourceCheckFailed.reason}`] : []),
-  ].join("\n") || "Nothing to sync: add a notes folder with memo folders add."
+  ].join("\n") || "Nothing to sync: the mail CLI brings mail in, and files folders add brings in notes."
 
 const enrichmentLine = (run: EnrichmentReport): string =>
   `enrichment: ${run.enriched} of ${run.sent} records sent${run.provider ? ` to ${run.provider} ${run.model}` : ""}` +
@@ -128,8 +118,6 @@ type Synced = "notes" | "mail" | "people"
 
 interface SyncOptions {
   only?: Synced[]
-  folder?: string[]
-  ignore?: string[]
   embed: boolean
   json?: boolean
   timeout?: number
@@ -144,12 +132,8 @@ const onlyOf = (value: string): Synced[] => {
   return [...new Set(selected)] as Synced[]
 }
 
-/** What a run syncs: --only, plus the side each narrowing option belongs to; all when nothing names a side. */
-const syncedOf = (options: SyncOptions): Set<Synced> => {
-  const synced = new Set(options.only)
-  if (options.folder || options.ignore) synced.add("notes")
-  return synced.size ? synced : new Set(SYNCED)
-}
+/** What a run syncs: --only, or all. */
+const syncedOf = (options: SyncOptions): Set<Synced> => (options.only ? new Set(options.only) : new Set(SYNCED))
 
 /**
  * What the timer's `last.json` keeps of a failed run. A failure's message can name a folder, a sender or a subject,
@@ -183,29 +167,17 @@ export const syncCommand = (
   keyring?: KeyringStore,
 ): void => {
   const { print } = answers(program, streams, env)
-  notLocalPaths(annotate(program.command("sync"), { effects: FETCH }), "folder", "ignore")
-    .summary("sync notes, make stored mail searchable by meaning, and match people")
+  annotate(program.command("sync"), { effects: FETCH })
+    .summary("embed stored mail for search by meaning, match people, and sync notes through files")
     .description(
-      "bring notes up to date in the store, only what changed, embed the mail already stored for search by " +
-        "meaning, and match people across sources (memo people scan); the mail CLI syncs the mail itself " +
-        "(mail <profile> sync). Every configured folder unless narrowed",
+      "embed the mail already stored for search by meaning, match people across sources (wcat people scan), and " +
+        "run files sync when the files CLI is installed, which brings notes folders up to date; the mail CLI syncs " +
+        "the mail itself (mail <profile> sync)",
     )
     .option(
       "--only <resources>",
-      "notes,mail,people, separated by commas; mail embeds stored mail only, people links who is who",
+      "notes,mail,people, separated by commas; notes runs files sync, mail embeds stored mail only, people links who is who",
       onlyOf,
-    )
-    .addOption(
-      new Option(
-        "--folder <folder>",
-        "notes: only this configured folder, by its id or path; repeat for more",
-      ).argParser(collect),
-    )
-    .addOption(
-      new Option(
-        "--ignore <path>",
-        "notes: leave this file or folder alone this run, a path or a glob; repeat for more",
-      ).argParser(collect),
     )
     .option("--no-embed", "skip embedding notes and mail for search by meaning this run")
     .option(
@@ -234,14 +206,15 @@ export const syncCommand = (
     const config = loadConfig(env)
     if (config.mail !== undefined)
       streams.diagnostic(
-        "memo sync no longer imports mail: the mail CLI does (mail <profile> sync); memo config unset mail removes " +
-          "the old settings, and memo doctor names the mailboxes\n",
+        "wcat sync does not import mail: the mail CLI does (mail <profile> sync); wcat config unset mail removes " +
+          "the old settings, and wcat doctor names the mailboxes\n",
       )
-    if (env.MEMO_AUTO === "1") {
+    if (env.WCAT_AUTO === "1") {
       await applyAuto(env, autoState(config))
       if (!autoState(config).enabled) return
     }
     const run: ImportRun = { notes: [], failed: [] }
+    let filesEnrichment: EnrichmentReport | undefined
     const startedAt = Date.now()
     const answer = () =>
       itemAnswer(run, {
@@ -250,61 +223,38 @@ export const syncCommand = (
           ...(run.failed.length ? { issues: issuesOf(run.failed) } : {}),
         },
       })
+    if (synced.has("notes")) {
+      halt()
+      const files: FilesSync = await filesSync(env, { embed: options.embed, signal: stop })
+      if (files.ran) {
+        run.notes = files.notes
+        if (files.notesEmbedded) run.notesEmbedded = files.notesEmbedded
+        if (files.enrichment) filesEnrichment = files.enrichment
+        for (const one of files.failed) run.failed.push(one)
+      } else if (options.only?.includes("notes"))
+        run.failed.push({
+          source: "notes",
+          code: "not_found",
+          reasonId: "files.not-installed",
+          reason: "notes are synced by the files CLI, which is not installed: npm install -g @wirecat/files-cli",
+        })
+    }
     const work = withImportLock(env, async () => {
       const store = await openStore({ env, ...STORE_CLIENT, decisions: decisionPolicy(env) })
-      const enriched: (EnrichmentReport | undefined)[] = []
+      const enriched: (EnrichmentReport | undefined)[] = [filesEnrichment]
       const attempt = async (source: string, work: () => Promise<void>) => {
         halt()
         try {
           await work()
         } catch (error) {
           halt()
-          markStoreDamaged(error, { store: storePath(env), command: "memo sync", version: APP.version })
+          markStoreDamaged(error, { store: storePath(env), command: "wcat sync", version: APP.version })
           const { error: failure } = await errorObject(error)
           const reason = failureReason(error, failure, debug)
           run.failed.push({ source, code: failure.code, reasonId: failure.reason, reason })
         }
       }
       try {
-        if (synced.has("notes")) {
-          const folders =
-            options.folder === undefined
-              ? await boundFolders(store, env, { strict: false })
-              : await boundFolders(store, env, { only: options.folder })
-          if (options.folder === undefined)
-            for (const folder of noteFolders(config.notes))
-              if (!folders.some(({ path }) => path === folder.path))
-                run.failed.push({
-                  source: `notes ${folder.path}`,
-                  code: "configuration_error",
-                  reasonId: UNBOUND,
-                  reason: unboundReason(folder.path),
-                })
-          const ignore = config.notes?.ignore ?? []
-          const skip = options.ignore ?? []
-          for (const folder of folders)
-            await attempt(`notes ${folder.path}`, async () => {
-              const onFile = progressLine(streams.diagnostic, Boolean(options.json), {
-                step: "notes",
-                unit: "files",
-                label: folder.id,
-              })
-              run.notes.push(await importNotes(store, folder, { ignore, skip, env, onFile }))
-            })
-          if (folders.length > 0)
-            await attempt("notes by meaning", async () => {
-              const { enrichment, ...embedded } = await embedNoteChunks(store, {
-                embed: options.embed && config.notes?.embed !== false,
-                env,
-                ...(keyring ? { keyring } : {}),
-              })
-              run.notesEmbedded = embedded
-              enriched.push(enrichment)
-            })
-          await attempt("people-notes.json", async () => {
-            await importNotesMap(store, env, folders)
-          })
-        }
         if (synced.has("mail"))
           await attempt("mail by meaning", async () => {
             const { enrichment, ...embedded } = await embedMailChunks(store, {
@@ -332,7 +282,7 @@ export const syncCommand = (
           run.sourceCheck = await store.knowledge.checkSources()
         } catch (error) {
           halt()
-          markStoreDamaged(error, { store: storePath(env), command: "memo sync", version: APP.version })
+          markStoreDamaged(error, { store: storePath(env), command: "wcat sync", version: APP.version })
           const { error: failure } = await errorObject(error)
           run.sourceCheckFailed = {
             code: failure.code,
@@ -348,15 +298,15 @@ export const syncCommand = (
     const skipped = await work.then(
       () => undefined,
       (error: unknown) => {
-        if (env.MEMO_AUTO === "1" && isCliError(error) && error.details.reason === "sync.running")
-          return `another memo sync is running (process ${String(error.details.pid)})`
+        if (env.WCAT_AUTO === "1" && isCliError(error) && error.details.reason === "sync.running")
+          return `another wcat sync is running (process ${String(error.details.pid)})`
         recordAutoRun(env, startedAt, crashReason(error))
         throw error
       },
     )
     if (skipped !== undefined) {
       run.skipped = skipped
-      streams.diagnostic(`memo sync skipped: ${skipped}`)
+      streams.diagnostic(`wcat sync skipped: ${skipped}`)
       if (options.json) print(true, answer())
       return
     }

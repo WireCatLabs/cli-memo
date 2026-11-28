@@ -20,8 +20,8 @@ const NOBODY: Terminal = { present: false }
 const setUp = async (agentDecisions = true) => {
   const env: NodeJS.ProcessEnv = {
     ...process.env,
-    MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "memo-decide-")), "s.db"),
-    MEMO_CONFIG_DIR: mkdtempSync(join(tmpdir(), "memo-decide-config-")),
+    MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "wcat-decide-")), "s.db"),
+    WCAT_CONFIG_DIR: mkdtempSync(join(tmpdir(), "wcat-decide-config-")),
   }
   delete env.AI_AGENT
   delete env.CLAUDECODE
@@ -200,7 +200,7 @@ it("refuses an MCP client confirming its own proposal, and neither --as-owner no
     const confirmed = await call("facts confirm", { ref: fact.ref, reason: "it is right" })
     expect(confirmed.isError).toBe(true)
     expect(confirmed.structuredContent).toMatchObject({ error: { reason: "proposal.own" } })
-    const schema = await client.callTool({ name: "memo_tools_search", arguments: { query: "facts confirm" } })
+    const schema = await client.callTool({ name: "wcat_tools_search", arguments: { query: "facts confirm" } })
     expect(JSON.stringify(schema.structuredContent)).not.toContain("as_owner")
     expect(JSON.stringify(schema.structuredContent)).not.toContain("from_app")
   } finally {

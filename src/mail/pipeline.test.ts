@@ -14,7 +14,7 @@ const MAILBOX = `email:${ME}`
 const AGENT = { AI_AGENT: "claude-code_2-1-296_agent" }
 const ANOTHER_AGENT = { AI_AGENT: "codex_synthetic" }
 /** A run `schedule agent --on-new-mail mail-triage` started: under the lock, and naming the holder it may move. */
-const LOCKED = { ...AGENT, MEMO_READ_ONLY: "1", MEMO_MAIL_HOLDER: "mail-triage" }
+const LOCKED = { ...AGENT, WCAT_READ_ONLY: "1", WCAT_MAIL_HOLDER: "mail-triage" }
 const NOBODY: Terminal = { present: false }
 const OWNER: Terminal = { present: true }
 const BULK: MailboxInput = { externalId: "memo:bulk", name: "bulk", kind: "bulk" }
@@ -43,11 +43,11 @@ const email = (id: string, hoursAgo: number, fields: Partial<EmailInput> = {}): 
 })
 
 const mailbox = async () => {
-  const dir = mkdtempSync(join(tmpdir(), "memo-mail-pipeline-"))
+  const dir = mkdtempSync(join(tmpdir(), "wcat-mail-pipeline-"))
   const env: NodeJS.ProcessEnv = {
     ...process.env,
     MESSAGING_STORE: join(dir, "s.db"),
-    MEMO_CONFIG_DIR: mkdtempSync(join(tmpdir(), "memo-mail-pipeline-config-")),
+    WCAT_CONFIG_DIR: mkdtempSync(join(tmpdir(), "wcat-mail-pipeline-config-")),
   }
   delete env.AI_AGENT
   delete env.CLAUDECODE
@@ -73,14 +73,14 @@ const mailbox = async () => {
         JSON.stringify({ since: new Date(0).toISOString(), until: new Date().toISOString(), state: "window" }),
       ),
     )
-  const memo = async (as: Record<string, string>, terminal: Terminal, ...args: string[]) => {
+  const wcat = async (as: Record<string, string>, terminal: Terminal, ...args: string[]) => {
     const streams = captureStreams()
     await createProgram({ streams, env: { ...env, ...as }, terminal })
       .exitOverride()
       .parseAsync([...args, "--json"], { from: "user" })
     return envelopeOf(streams.stdout.join(""))
   }
-  /** The reason a command was refused for, however memo reports it: thrown, or printed with an exit code. */
+  /** The reason a command was refused for, however wcat reports it: thrown, or printed with an exit code. */
   const refusalAt = async (terminal: Terminal, as: Record<string, string>, ...args: string[]) => {
     const streams = captureStreams()
     process.exitCode = 0
@@ -103,11 +103,11 @@ const mailbox = async () => {
     return path
   }
   const review = async (): Promise<Review & { cursor: string; key: string | undefined }> => {
-    const answer = (await memo(
+    const answer = (await wcat(
       LOCKED,
       NOBODY,
-      "mail",
       "review",
+      "mail",
       "--holder",
       "mail-triage",
       "--source",
@@ -118,8 +118,8 @@ const mailbox = async () => {
     return { ...answer, cursor, key: answer.next?.find((one) => one.step === "mail-findings.add")?.args?.key }
   }
   const acknowledge = (cursor: string) =>
-    memo(LOCKED, NOBODY, "messages", "acknowledge", "--holder", "mail-triage", "--cursor", cursor, "--source", MAILBOX)
-  return { dir, env, withStore, thread, synced, memo, refusal, refusalAt, file, review, acknowledge }
+    wcat(LOCKED, NOBODY, "messages", "acknowledge", "--holder", "mail-triage", "--cursor", cursor, "--source", MAILBOX)
+  return { dir, env, withStore, thread, synced, wcat, refusal, refusalAt, file, review, acknowledge }
 }
 
 /** A mailbox past its first run, with an open task the owner opened from Ann's request. */
@@ -128,7 +128,7 @@ const triaged = async () => {
   await box.thread("t-lease", email("lease", 30))
   await box.synced()
   const lease = `msg:email/${encodeURIComponent(ME)}/t-lease/${encodeURIComponent("<lease@example.com>")}`
-  const added = (await box.memo({}, OWNER, "tasks", "add", lease, "--title", "Send the signed lease")).item
+  const added = (await box.wcat({}, OWNER, "tasks", "add", lease, "--title", "Send the signed lease")).item
   const task = { ref: `task:${added.task.key}` }
   await box.acknowledge((await box.review()).cursor)
   return { ...box, task }
@@ -219,31 +219,31 @@ it("gives the agent only mail worth reading, stages its batch once, and moves th
   const ask = read.items.find((item) => item.chat_id === "t-new") as Item
   expect(ask.email).toMatchObject({ new_sender: true, sender_identities: 1 })
   const form = read.items.at(-1) as Item & { text: string }
-  const whole = (await box.memo(LOCKED, NOBODY, "messages", "show", form.ref, "--trimmed")).item
+  const whole = (await box.wcat(LOCKED, NOBODY, "messages", "show", form.ref, "--trimmed")).item
   expect(whole).toMatchObject({ fingerprint: form.email.fingerprint })
-  const shown = (await box.memo(LOCKED, NOBODY, "messages", "show", ask.ref)).item
+  const shown = (await box.wcat(LOCKED, NOBODY, "messages", "show", ask.ref)).item
   expect(shown.fingerprint).toBe(ask.email.fingerprint)
   expect(shown.text).toContain("> earlier")
   const own = "quote\n\nCould you send the quote?"
   expect((ask as Item & { text: string }).text).toBe(own)
-  const trimmed = (await box.memo(LOCKED, NOBODY, "messages", "show", ask.ref, "--trimmed")).item
+  const trimmed = (await box.wcat(LOCKED, NOBODY, "messages", "show", ask.ref, "--trimmed")).item
   expect(trimmed).toMatchObject({ text: own, fingerprint: ask.email.fingerprint })
-  const context = (await box.memo(LOCKED, NOBODY, "context", "email:bob@example.org", "--trimmed")).item
+  const context = (await box.wcat(LOCKED, NOBODY, "context", "email:bob@example.org", "--trimmed")).item
   expect(context.messages.last.from_them_anywhere.text).toBe(own)
 
   const through = read.cursor.split(".")[0] as string
   const agentFindings = scriptedAgent(read.items, box.task, through)
   const findings = box.file("findings.json", agentFindings)
-  const staged = (await box.memo(LOCKED, NOBODY, "mail", "findings", "add", findings, "--source", MAILBOX)).item
+  const staged = (await box.wcat(LOCKED, NOBODY, "review", "findings", "add", findings, "--source", MAILBOX)).item
   expect(staged).toMatchObject({ status: "proposed", author: { type: "agent", name: "claude-code" } })
   expect((await box.review()).items).toHaveLength(3)
 
   await box.acknowledge(read.cursor)
   expect((await box.review()).items).toEqual([])
   const inline = ` ${JSON.stringify(agentFindings)}`
-  const again = (await box.memo(LOCKED, NOBODY, "mail", "findings", "add", inline, "--source", MAILBOX)).item
+  const again = (await box.wcat(LOCKED, NOBODY, "review", "findings", "add", inline, "--source", MAILBOX)).item
   expect(again.id).toBe(staged.id)
-  expect((await box.memo({}, NOBODY, "mail", "findings", "list", "status:proposed")).items).toHaveLength(1)
+  expect((await box.wcat({}, NOBODY, "review", "findings", "list", "status:proposed")).items).toHaveLength(1)
 })
 
 it("leaves every decision to the owner, and the owner's confirm closes the task the reply answered", async () => {
@@ -260,7 +260,7 @@ it("leaves every decision to the owner, and the owner's confirm closes the task 
   await box.synced()
   const read = await box.review()
   const findings = box.file("findings.json", scriptedAgent(read.items, box.task, read.cursor.split(".")[0] as string))
-  const batch = (await box.memo(LOCKED, NOBODY, "mail", "findings", "add", findings, "--source", MAILBOX)).item
+  const batch = (await box.wcat(LOCKED, NOBODY, "review", "findings", "add", findings, "--source", MAILBOX)).item
 
   for (const decide of [
     ["review", "confirm", `${batch.id}/u1`, "--reason", "the owner replied"],
@@ -271,14 +271,14 @@ it("leaves every decision to the owner, and the owner's confirm closes the task 
   expect(await box.refusal(AGENT, "actions", "confirm", batch.id, "--reason", "mine")).toBe("proposal.owner-only")
   expect(await box.refusal(LOCKED, "review", "confirm", `${batch.id}/u1`)).toBe("permission_error")
 
-  await box.memo({}, OWNER, "review", "confirm", `${batch.id}/u1`)
+  await box.wcat({}, OWNER, "review", "confirm", `${batch.id}/u1`)
 
-  const card = (await box.memo({}, NOBODY, "tasks", "show", box.task.ref.slice("task:".length), "--source", MAILBOX))
+  const card = (await box.wcat({}, NOBODY, "tasks", "show", box.task.ref.slice("task:".length), "--source", MAILBOX))
     .item
   expect(card).toMatchObject({ status: "done", reason: "you replied" })
-  expect((await box.memo({}, NOBODY, "mail", "findings", "show", batch.id)).item.status).toBe("proposed")
-  await box.memo({}, OWNER, "actions", "reject", batch.id)
-  expect((await box.memo({}, NOBODY, "mail", "findings", "show", batch.id)).item.status).toBe("reviewed")
+  expect((await box.wcat({}, NOBODY, "review", "findings", "show", batch.id)).item.status).toBe("proposed")
+  await box.wcat({}, OWNER, "actions", "reject", batch.id)
+  expect((await box.wcat({}, NOBODY, "review", "findings", "show", batch.id)).item.status).toBe("reviewed")
 })
 
 it("lets the owner confirm or reject a mail batch with the fingerprint it read, and refuses another", async () => {
@@ -297,7 +297,7 @@ it("lets the owner confirm or reject a mail batch with the fingerprint it read, 
   const stage = async (key: string) => {
     const agent = { ...scriptedAgent(read.items, box.task, read.cursor.split(".")[0] as string), key }
     return (
-      await box.memo(LOCKED, NOBODY, "mail", "findings", "add", box.file(`${key}.json`, agent), "--source", MAILBOX)
+      await box.wcat(LOCKED, NOBODY, "review", "findings", "add", box.file(`${key}.json`, agent), "--source", MAILBOX)
     ).item
   }
   const first = await stage("mail-triage:1")
@@ -309,11 +309,11 @@ it("lets the owner confirm or reject a mail batch with the fingerprint it read, 
     ["reject", second.id],
   ])
     expect(await box.refusalAt(OWNER, {}, "actions", verb, id, "--fingerprint", wrong)).toBe("mail-findings.stale")
-  await box.memo({}, OWNER, "actions", "confirm", first.id, "t1", "--fingerprint", first.fingerprint)
-  await box.memo({}, OWNER, "actions", "reject", second.id, "--fingerprint", second.fingerprint)
-  await box.memo({}, OWNER, "actions", "reject", first.id)
+  await box.wcat({}, OWNER, "actions", "confirm", first.id, "t1", "--fingerprint", first.fingerprint)
+  await box.wcat({}, OWNER, "actions", "reject", second.id, "--fingerprint", second.fingerprint)
+  await box.wcat({}, OWNER, "actions", "reject", first.id)
 
-  const shown = async (id: string) => (await box.memo({}, NOBODY, "mail", "findings", "show", id)).item.receipt
+  const shown = async (id: string) => (await box.wcat({}, NOBODY, "review", "findings", "show", id)).item.receipt
   expect((await shown(first.id)).accepted).toEqual(["t1"])
   expect((await shown(second.id)).accepted).toEqual([])
 })
@@ -332,13 +332,13 @@ it("lets the app confirm a mail batch as the owner under --from-app, and refuses
   await box.synced()
   const read = await box.review()
   const findings = box.file("findings.json", scriptedAgent(read.items, box.task, read.cursor.split(".")[0] as string))
-  const batch = (await box.memo(LOCKED, NOBODY, "mail", "findings", "add", findings, "--source", MAILBOX)).item
+  const batch = (await box.wcat(LOCKED, NOBODY, "review", "findings", "add", findings, "--source", MAILBOX)).item
   const desktop = { WIRECAT_CALLER: "desktop" }
   const decide = ["actions", "confirm", batch.id, "t1", "--fingerprint", batch.fingerprint]
   expect(await box.refusal(desktop, ...decide)).toBe("decision.decider-unknown")
-  await box.memo(desktop, NOBODY, ...decide, "--from-app")
-  await box.memo(desktop, NOBODY, "actions", "reject", batch.id, "--from-app")
-  const shown = (await box.memo({}, NOBODY, "mail", "findings", "show", batch.id)).item
+  await box.wcat(desktop, NOBODY, ...decide, "--from-app")
+  await box.wcat(desktop, NOBODY, "actions", "reject", batch.id, "--from-app")
+  const shown = (await box.wcat({}, NOBODY, "review", "findings", "show", batch.id)).item
   expect(shown).toMatchObject({ status: "reviewed", receipt: { accepted: ["t1"] } })
 })
 
@@ -366,8 +366,8 @@ it("refuses a batch that cites mail changed since review, and stages nothing", a
     ],
   })
 
-  expect(await box.refusal(LOCKED, "mail", "findings", "add", stale, "--source", MAILBOX)).toBe("mail-findings.stale")
-  expect((await box.memo({}, NOBODY, "mail", "findings", "list")).items).toEqual([])
+  expect(await box.refusal(LOCKED, "review", "findings", "add", stale, "--source", MAILBOX)).toBe("mail-findings.stale")
+  expect((await box.wcat({}, NOBODY, "review", "findings", "list")).items).toEqual([])
 })
 
 it("lets a read-only agent stage and acknowledge, and refuses every other change", async () => {
@@ -395,7 +395,7 @@ it("lets a read-only agent stage and acknowledge, and refuses every other change
   ).not.toBe("permission_error")
 })
 
-it("hands on review steps as memo's own commands, naming the mailbox", async () => {
+it("hands on review steps as wcat's own commands, naming the mailbox", async () => {
   const box = await mailbox()
   await box.thread("t-quote", email("quote", 1))
   await box.synced()
@@ -406,7 +406,7 @@ it("hands on review steps as memo's own commands, naming the mailbox", async () 
       step: "mail-messages.acknowledge",
       command: "messages acknowledge",
       args: { holder: "mail-triage", cursor: read.cursor, source: MAILBOX },
-      line: `memo messages acknowledge --holder mail-triage --cursor ${read.cursor} --source ${MAILBOX}`,
+      line: `wcat messages acknowledge --holder mail-triage --cursor ${read.cursor} --source ${MAILBOX}`,
     }),
   ])
 })
@@ -421,16 +421,16 @@ it("lets only the owner move the agent's mark back, and says how many emails it 
 
   expect(await box.refusal(LOCKED, ...reset, "--last", "1")).toBe("permission_error")
   expect(await box.refusal(AGENT, ...reset, "--last", "1")).toBe("mail.reset-owner-only")
-  const dry = (await box.memo({}, OWNER, ...reset, "--last", "1", "--dry-run")).item
+  const dry = (await box.wcat({}, OWNER, ...reset, "--last", "1", "--dry-run")).item
   expect(dry).toMatchObject({ again: 1, dry_run: true })
   expect((await box.review()).items).toEqual([])
 
   const since = async (time: string) =>
-    (await box.memo({}, OWNER, ...reset, "--since-time", time, "--dry-run")).item.again
+    (await box.wcat({}, OWNER, ...reset, "--since-time", time, "--dry-run")).item.again
   expect(await since("2020-01-01T00:00:00Z")).toBe(2)
   expect(await since("2099-01-01T00:00:00Z")).toBe(0)
 
-  expect((await box.memo({}, OWNER, ...reset, "--last", "1")).item).toMatchObject({ again: 1, dry_run: false })
+  expect((await box.wcat({}, OWNER, ...reset, "--last", "1")).item).toMatchObject({ again: 1, dry_run: false })
   expect((await box.review()).items.map((item) => item.chat_id)).toEqual(["t-ask"])
 })
 
@@ -443,10 +443,10 @@ it("stages a run after the owner moved the mark back, while the batch staged bef
   )
   await box.synced()
   const stage = (key: string, findings: unknown, ...extra: string[]) =>
-    box.memo(
+    box.wcat(
       LOCKED,
       NOBODY,
-      "mail",
+      "review",
       "findings",
       "add",
       JSON.stringify(findings),
@@ -463,7 +463,7 @@ it("stages a run after the owner moved the mark back, while the batch staged bef
   await box.acknowledge(first.cursor)
 
   const reset = ["messages", "reset", "--holder", "mail-triage", "--source", MAILBOX, "--last", "2"]
-  expect((await box.memo({}, OWNER, ...reset)).item).toMatchObject({ again: 2, dry_run: false })
+  expect((await box.wcat({}, OWNER, ...reset)).item).toMatchObject({ again: 2, dry_run: false })
   const again = await box.review()
   expect(again.key).toBe(`${first.key}-r1`)
   const { key: __, ...rerun } = scriptedAgent(again.items, box.task, "1")
@@ -477,7 +477,7 @@ it("stages a run after the owner moved the mark back, while the batch staged bef
   expect(
     await box.refusal(
       LOCKED,
-      "mail",
+      "review",
       "findings",
       "add",
       JSON.stringify({ ...other, key: first.key }),
@@ -487,9 +487,9 @@ it("stages a run after the owner moved the mark back, while the batch staged bef
       MAILBOX,
     ),
   ).toBe("findings.key-mismatch")
-  expect((await box.memo({}, NOBODY, "mail", "findings", "list", "status:proposed")).items).toHaveLength(2)
+  expect((await box.wcat({}, NOBODY, "review", "findings", "list", "status:proposed")).items).toHaveLength(2)
   const page = (n: string) =>
-    box.memo({}, NOBODY, "mail", "findings", "list", "--source", MAILBOX, "--limit", "1", "--page", n)
+    box.wcat({}, NOBODY, "review", "findings", "list", "--source", MAILBOX, "--limit", "1", "--page", n)
   const [one, two] = [await page("1"), await page("2")]
   expect(one.page).toMatchObject({ has_more: true })
   expect(two.page).toMatchObject({ has_more: false })
@@ -503,20 +503,20 @@ it("reviews with --unanswered only the threads that waited that long for the own
   await box.thread("t-old", email("old", 30))
   await box.thread("t-fresh", email("fresh", 1))
   await box.synced()
-  const unanswered = (await box.memo(
+  const unanswered = (await box.wcat(
     LOCKED,
     NOBODY,
-    ...["mail", "review", "--source", MAILBOX, "--unanswered", "4h"],
+    ...["review", "mail", "--source", MAILBOX, "--unanswered", "4h"],
   )) as Review
   expect(unanswered.items.map((item) => item.chat_id)).toEqual(["t-old"])
-  const all = (await box.memo(LOCKED, NOBODY, "mail", "review", "--source", MAILBOX)) as Review
+  const all = (await box.wcat(LOCKED, NOBODY, "review", "mail", "--source", MAILBOX)) as Review
   expect(all.items.map((item) => item.chat_id).sort()).toEqual(["t-fresh", "t-old"])
 })
 
 it("answers a findings file that is not there as not found, not as a crash", async () => {
   const box = await triaged()
   const missing = join(box.dir, "nowhere.json")
-  expect(await box.refusal(LOCKED, "mail", "findings", "add", missing, "--source", MAILBOX)).toBe(
+  expect(await box.refusal(LOCKED, "review", "findings", "add", missing, "--source", MAILBOX)).toBe(
     "findings.file-missing",
   )
 })
@@ -552,7 +552,7 @@ it("checks a whole batch with --dry-run under the read-only lock, and stages not
     findings: [...agent.findings, { ...invoice, id: "f1", kind: "fact", type: "fact" }, invoice],
   }
   const check = async (input: unknown) =>
-    box.memo(LOCKED, NOBODY, "mail", "findings", "add", JSON.stringify(input), "--source", MAILBOX, "--dry-run")
+    box.wcat(LOCKED, NOBODY, "review", "findings", "add", JSON.stringify(input), "--source", MAILBOX, "--dry-run")
 
   const refused = await check(broken)
   expect(refused.item).toMatchObject({ dry_run: true, valid: false, batch: null })
@@ -564,12 +564,13 @@ it("checks a whole batch with --dry-run under the read-only lock, and stages not
     }),
   ])
   expect(refused.meta).toMatchObject({ complete: false })
-  expect((await box.memo({}, NOBODY, "mail", "findings", "list")).items).toEqual([])
+  expect((await box.wcat({}, NOBODY, "review", "findings", "list")).items).toEqual([])
 
   const fixed = { ...agent, findings: [...agent.findings, invoice] }
   expect((await check(fixed)).item).toMatchObject({ valid: true, findings: 4, problems: [] })
-  const staged = (await box.memo(LOCKED, NOBODY, "mail", "findings", "add", JSON.stringify(fixed), "--source", MAILBOX))
-    .item
+  const staged = (
+    await box.wcat(LOCKED, NOBODY, "review", "findings", "add", JSON.stringify(fixed), "--source", MAILBOX)
+  ).item
   expect(staged.input.findings.at(-1)).toMatchObject({ counterparty_name: "Bob Example GmbH" })
   expect((await check(fixed)).item).toMatchObject({ valid: true, batch: staged.id })
 })
@@ -600,10 +601,10 @@ it("leaves out a finding the store or a waiting batch already holds, and stages 
     evidence: evidenceOf(item),
   }
   const add = (key: string, findings: unknown[], ...extra: string[]) =>
-    box.memo(
+    box.wcat(
       LOCKED,
       NOBODY,
-      "mail",
+      "review",
       "findings",
       "add",
       JSON.stringify({ schema_version: 1, key, extractor: "mail-triage/1", findings }),

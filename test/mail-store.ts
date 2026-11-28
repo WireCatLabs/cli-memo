@@ -70,7 +70,7 @@ const sourceOf = (emails: FakeEmail[]): MailSource => ({
     }),
 })
 
-/** Stores synthetic Gmail mail as the `mail` CLI does: cli-core's sync, so memo reads it as it reads real mail. */
+/** Stores synthetic Gmail mail as the `mail` CLI does: cli-core's sync, so wcat reads it as it reads real mail. */
 export const storeMail = (
   store: MessageStore,
   address: string,

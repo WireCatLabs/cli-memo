@@ -48,7 +48,7 @@ const peopleIds = async (store: MessageStore, ids: string[]): Promise<{ ids: str
         id,
         code: "validation_error",
         reason: "proposal.not-people",
-        message: `${id} is a ${kind} proposal; memo review decides it`,
+        message: `${id} is a ${kind} proposal; wcat review decides it`,
       })
     else kept.push(id)
   }
@@ -120,7 +120,7 @@ export const peopleProposalCommands = (
           listAnswer("people review", { items, limit, has_more: merged.hasMore }),
           items
             .map((item) => `${item.id}  ${item.from} into ${item.person} by ${item.by}, ${item.at.slice(0, 10)}`)
-            .concat(items.length ? [`undo one: memo people unmerge <merge>`] : [])
+            .concat(items.length ? [`undo one: wcat people unmerge <merge>`] : [])
             .join("\n") || "no merge an agent made is in place",
         )
         return

@@ -9,7 +9,7 @@ import { createMemoServer } from "./server.js"
 
 it("serves snapshot/check through the CLI under the read lock and refuses unknown fields", async () => {
   const f = await projectAnnotationFixture(),
-    server = createMemoServer({ ...f.env, MEMO_READ_ONLY: "1" }, createProgram)
+    server = createMemoServer({ ...f.env, WCAT_READ_ONLY: "1" }, createProgram)
   const client = new Client({ name: "synthetic-annotation-client", version: "1" }),
     [one, two] = InMemoryTransport.createLinkedPair()
   await Promise.all([server.connect(one), client.connect(two)])

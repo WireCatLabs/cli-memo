@@ -1,12 +1,12 @@
 # Roadmap
 
-Check whether what you miss is already planned before you look for a workaround. Here is what Memo does today, what
+Check whether what you miss is already planned before you look for a workaround. Here is what wcat does today, what
 comes next and what comes later. The order is rough and can change. Suggest your own in
-[issues on GitHub](https://github.com/WireCatLabs/cli-memo/issues).
+[issues on GitHub](https://github.com/WireCatLabs/wirecat/issues).
 
 ## What works today
 
-Memo reads folders of notes and the documents in them, searches the mail that the `mail` CLI syncs, and reads
+wcat reads folders of notes and the documents in them, searches the mail that the `mail` CLI syncs, and reads
 the messages tg, max and wa keep in the local store. You can search all of it together, see what you know about
 one person or project, tag anything, keep tasks and local reminders, and let an agent record memories, facts
 and proposals for you to review, from the terminal or over MCP. MCP exposes command tools, including writes,
@@ -22,16 +22,16 @@ The first items come first.
 
 - **Project evidence, next steps.** Before gathering, say which sources are fresh enough to search; read the
   whole thread around a match; optionally add search by meaning.
-- **Meetings in a person's context.** `search all` reads every meeting account; `memo context` does not yet.
+- **Meetings in a person's context.** `search all` reads every meeting account; `wcat context` does not yet.
 - **Faster search.** A search should not take seconds on a small store.
 
 ## Later
 
-- A full export and restore of one project, beyond the aliases, facts and links Memo moves today.
+- A full export and restore of one project, beyond the aliases, facts and links wcat moves today.
 - Optional AI analysis of a project's evidence, reported as what changed since the last run.
-- Merging duplicate tags. Today Memo shows what a merge would touch and changes nothing.
+- Merging duplicate tags. Today wcat shows what a merge would touch and changes nothing.
 - Reminders on a project's own tasks.
-- macOS and Windows support. Today Memo is tested on Linux only.
+- macOS and Windows support. Today wcat is tested on Linux only.
 - Finding images by the conversation around them and by photo data.
 
 What changed in each released version is in the [changelog](../CHANGELOG.md).

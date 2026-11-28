@@ -124,7 +124,7 @@ export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.Pro
     })
   const comments = group.command("comments").description("what people and agents wrote on a task")
   annotate(comments.command("add"), { effects: LOCAL_WRITE, literal_after_dashes: true })
-    .description("comment on a task, in your name or the agent's that runs memo")
+    .description("comment on a task, in your name or the agent's that runs wcat")
     .argument("<id>", "the task's id or key")
     .argument("<text...>", "what to say, in Markdown")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
@@ -233,7 +233,7 @@ export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.Pro
   if (!sharedUpdate) throw new Error("shared task update is missing")
   overrideSharedContract(
     sharedUpdate,
-    "Memo preserves source-account checks and bare person UIDs; a found task takes priority, status and agent too.",
+    "wcat preserves source-account checks and bare person UIDs; a found task takes priority, status and agent too.",
     (command) => {
       command
         .description(

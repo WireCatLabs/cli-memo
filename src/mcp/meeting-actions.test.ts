@@ -17,7 +17,7 @@ import { createMemoServer } from "./server.js"
 const fixture = async () => {
   const env: NodeJS.ProcessEnv = {
     ...process.env,
-    MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "memo-followups-")), "store"),
+    MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "wcat-followups-")), "store"),
   }
   const account = { provider: "example", account: "synthetic" }
   const store = await openStore({ env })
@@ -129,7 +129,7 @@ it("stages replay-safe attributed proposals, exposes previews and keeps project 
     const streams = captureStreams()
     await createProgram({ env: f.env, streams }).parseAsync(["projects", "context", "Harbour Launch"], { from: "user" })
     expect(streams.stdout.join("")).toContain(`batch ${first.item.id}/followup [task]: Check draft status`)
-    const catalogue = await client.callTool({ name: "memo_tools_search", arguments: {} })
+    const catalogue = await client.callTool({ name: "wcat_tools_search", arguments: {} })
     const items = (
       catalogue.structuredContent as { items: { command: string; availability: { available: boolean } }[] }
     ).items
@@ -241,7 +241,7 @@ it("filters mixed-project batches in context while preserving the full preview f
 
 it("refuses an agent a meeting decision even when agent_decisions and the permission allow it", async () => {
   const f = await fixture()
-  f.env.MEMO_CONFIG_DIR = mkdtempSync(join(tmpdir(), "memo-decision-config-"))
+  f.env.WCAT_CONFIG_DIR = mkdtempSync(join(tmpdir(), "wcat-decision-config-"))
   updateConfig(
     (config) => ({
       ...config,

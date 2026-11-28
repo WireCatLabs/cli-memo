@@ -30,6 +30,9 @@
     "grok",
     "kimi",
     "openclaw",
-    "opencode"
+    "opencode",
+    "wcat",
+    "WCAT",
+    "wirecat"
   ]
 }

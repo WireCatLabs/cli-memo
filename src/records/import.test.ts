@@ -11,8 +11,8 @@ import type { Terminal } from "../terminal.js"
 const OWNER: Terminal = { present: true }
 
 const setUp = async () => {
-  const dir = mkdtempSync(join(tmpdir(), "memo-records-import-"))
-  const env: NodeJS.ProcessEnv = { ...process.env, MESSAGING_STORE: join(dir, "s.db"), MEMO_CONFIG_DIR: dir }
+  const dir = mkdtempSync(join(tmpdir(), "wcat-records-import-"))
+  const env: NodeJS.ProcessEnv = { ...process.env, MESSAGING_STORE: join(dir, "s.db"), WCAT_CONFIG_DIR: dir }
   delete env.AI_AGENT
   delete env.CLAUDECODE
   const store = await openStore({ env })
@@ -63,8 +63,8 @@ it("imports a JSONL file once as a proposal, never confirmed money, and a second
 })
 
 it("makes the organization a record names, proposes its invoice, and lets only the owner remap it", async () => {
-  const dir = mkdtempSync(join(tmpdir(), "memo-records-map-"))
-  const env: NodeJS.ProcessEnv = { ...process.env, MESSAGING_STORE: join(dir, "s.db"), MEMO_CONFIG_DIR: dir }
+  const dir = mkdtempSync(join(tmpdir(), "wcat-records-map-"))
+  const env: NodeJS.ProcessEnv = { ...process.env, MESSAGING_STORE: join(dir, "s.db"), WCAT_CONFIG_DIR: dir }
   delete env.AI_AGENT
   delete env.CLAUDECODE
   const store = await openStore({ env })

@@ -9,7 +9,7 @@ import { answerOf } from "../../test/answer.js"
 import { createProgram } from "../program.js"
 
 it("attaches the source to a task or opens a new one when told to, as cli-core's duplicate check asks", async () => {
-  const env = { ...process.env, MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "memo-duplicates-")), "store.db") }
+  const env = { ...process.env, MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "wcat-duplicates-")), "store.db") }
   const key = { provider: "telegram", account: "1" }
   const store = await openStore({ env })
   await store.sync.applyDelta(key, {

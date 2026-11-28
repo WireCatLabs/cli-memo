@@ -36,7 +36,7 @@ const markOwner = async () => {
 }
 
 beforeEach(async () => {
-  env = { ...process.env, MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "memo-owner-")), "fixture.db") }
+  env = { ...process.env, MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "wcat-owner-")), "fixture.db") }
   const store = await openStore({ env })
   await store.sync.applyDelta(tg, { chats: [chat], people: [{ id: "101", name: "Owner Example" }] })
   await store.close()

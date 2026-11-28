@@ -28,7 +28,7 @@ const said = (chatId: string, id: number, days: number, outgoing: boolean) => ({
 const locks: Record<string, string>[] = []
 
 const setUp = async () => {
-  const root = mkdtempSync(join(tmpdir(), "memo-activity-"))
+  const root = mkdtempSync(join(tmpdir(), "wcat-activity-"))
   const env = { ...process.env, MESSAGING_STORE: join(root, "s.db") }
   const store = await openStore({ env })
   const busy = await store.knowledge.addProject({ name: "Harbour site", key: "HRB" })
@@ -103,7 +103,7 @@ it("reads all time, pages, and prints one block per project", async () => {
 it("runs under a group lock and counts only that group's chats", async () => {
   const show = await setUp()
   await show.run(["groups", "add", "personal", "max:22"])
-  locks.push({ MEMO_GROUP_LOCK: "personal" })
+  locks.push({ WCAT_GROUP_LOCK: "personal" })
   try {
     const body = envelopeOf(await show("--json"))
     expect(body.items[0]).toMatchObject({ chats: 0, messages: 0 })

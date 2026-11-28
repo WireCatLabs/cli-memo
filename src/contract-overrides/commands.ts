@@ -21,7 +21,7 @@ export const commands: readonly SharedContractOverride[] = [
         description: "one command, such as tags add",
       },
     ],
-    reason: "Memo binds discovery to its command-local JSON renderer and scoped stored-data document format.",
+    reason: "wcat binds discovery to its command-local JSON renderer and scoped stored-data document format.",
   },
   {
     command: ["commands"],
@@ -35,14 +35,14 @@ export const commands: readonly SharedContractOverride[] = [
         mandatory: false,
       },
     ],
-    reason: "Memo binds discovery to its command-local JSON renderer and scoped stored-data document format.",
+    reason: "wcat binds discovery to its command-local JSON renderer and scoped stored-data document format.",
   },
   {
     command: ["commands", "info"],
     field: "examples",
-    before: ["memo commands info commands"],
-    after: ["memo commands info --json"],
-    reason: "Memo binds discovery to its command-local JSON renderer and scoped stored-data document format.",
+    before: ["wcat commands info commands"],
+    after: ["wcat commands info --json"],
+    reason: "wcat binds discovery to its command-local JSON renderer and scoped stored-data document format.",
   },
   {
     command: ["commands", "info"],
@@ -63,7 +63,7 @@ export const commands: readonly SharedContractOverride[] = [
         description: "one command path; without one, schemas, error reasons and explicit overrides",
       },
     ],
-    reason: "Memo binds discovery to its command-local JSON renderer and scoped stored-data document format.",
+    reason: "wcat binds discovery to its command-local JSON renderer and scoped stored-data document format.",
   },
   {
     command: ["commands", "info"],
@@ -77,6 +77,6 @@ export const commands: readonly SharedContractOverride[] = [
         mandatory: false,
       },
     ],
-    reason: "Memo binds discovery to its command-local JSON renderer and scoped stored-data document format.",
+    reason: "wcat binds discovery to its command-local JSON renderer and scoped stored-data document format.",
   },
 ]

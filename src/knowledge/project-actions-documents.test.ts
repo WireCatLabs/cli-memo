@@ -13,7 +13,7 @@ import { createMemoServer } from "../mcp/server.js"
 import { createProgram } from "../program.js"
 
 it("shows cited document paragraphs in CLI and MCP review, while brief and zero windows omit them", async () => {
-  const dir = mkdtempSync(join(tmpdir(), "memo-doc-review-"))
+  const dir = mkdtempSync(join(tmpdir(), "wcat-doc-review-"))
   const owner: NodeJS.ProcessEnv = {
     ...process.env,
     MESSAGING_STORE: join(dir, "s.db"),

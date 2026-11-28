@@ -1,7 +1,7 @@
 import { parseLocator } from "@wirecat/cli-core"
 import { type TaskView, taskView } from "@wirecat/cli-core/services"
 import type { AccountKey, MessageStore, PersonRecord } from "@wirecat/cli-core/store"
-import { isNoteReference } from "../notes/about.js"
+import { isNoteReference } from "../knowledge/notes-about.js"
 import { heldMessage } from "../store/held.js"
 
 export const taskPage = async (

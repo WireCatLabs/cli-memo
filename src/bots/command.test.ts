@@ -71,7 +71,7 @@ it("moves a sender to a bot and back with its whole history, as the owner only",
 it("says in its text that the whole history moved and how to move it back", async () => {
   const text = await f.text("bots", "move", "email:alerts@shop.example", "--kind", "bot")
   expect(text).toMatch(/^moved email:alerts@shop\.example to bot:\d+ .*whole history/)
-  expect(text).toMatch(/memo bots move bot:\d+ --kind person moves it back/)
+  expect(text).toMatch(/wcat bots move bot:\d+ --kind person moves it back/)
 })
 
 it("refuses options that belong to the other direction and a reference it cannot read", async () => {
@@ -89,7 +89,7 @@ it("refuses options that belong to the other direction and a reference it cannot
 
 it("does not run in an account group, whose counts it would overstate", async () => {
   await f.run(OWNER, "groups", "add", "work", "email:owner@example.test")
-  await expect(f.run({ ...OWNER, MEMO_GROUP: "work" } as typeof OWNER, "bots", "list")).rejects.toMatchObject({
+  await expect(f.run({ ...OWNER, WCAT_GROUP: "work" } as typeof OWNER, "bots", "list")).rejects.toMatchObject({
     details: { reason: "bots.whole-store" },
   })
 })

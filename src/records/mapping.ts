@@ -96,7 +96,7 @@ export const recordMappingCommands = (
     annotate(records.command("link"), { effects: LOCAL_WRITE, output: { entity: "source_record" } })
       .description(
         "say which of your entries a source's record is (organization:client is organization:3); never done by " +
-          "name. Records that waited for it become proposals in memo review. Only you link; an agent is refused",
+          "name. Records that waited for it become proposals in wcat review. Only you link; an agent is refused",
       )
       .summary("say which of your entries a source's record is")
       .argument("<record>", RECORD_HELP)

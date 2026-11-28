@@ -59,7 +59,7 @@ export const projectActionsCommand = (projects: Command, streams: Streams, env: 
       )
       const author = await whoRuns(command, env, { question: "" })
       if (author === "owner")
-        throw new CliError("validation_error", "findings are an agent's proposals; record your own with memo facts add")
+        throw new CliError("validation_error", "findings are an agent's proposals; record your own with wcat facts add")
       await run(given.json, async (store) => {
         const { input: kept, duplicates } = await withoutTaskDuplicates(store, env, input)
         const noted = duplicates.length ? { duplicates } : {}

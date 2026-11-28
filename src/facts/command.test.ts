@@ -6,11 +6,12 @@ import { answerFields } from "@wirecat/cli-core/cli"
 import { openStore } from "@wirecat/cli-core/store"
 import { expect, it } from "vitest"
 import { answerOf } from "../../test/answer.js"
+import { addNote } from "../../test/notes.js"
 import { throwParseFailures } from "../failure.js"
 import { createProgram } from "../program.js"
 
 it("records the owner's facts as accepted and lets the owner accept, supersede and reverse an agent's decision", async () => {
-  const env = { ...process.env, MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "memo-facts-")), "store.db") }
+  const env = { ...process.env, MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "wcat-facts-")), "store.db") }
   const run = async (...args: string[]) => {
     const streams = captureStreams()
     await createProgram({ streams, env })
@@ -18,7 +19,7 @@ it("records the owner's facts as accepted and lets the owner accept, supersede a
       .parseAsync([...args, "--json"], { from: "user" })
     return answerOf(streams.stdout.join(""))
   }
-  const note = await run("notes", "add", "Alice Example: we ship on Fridays")
+  const note = await addNote(env, "Alice Example: we ship on Fridays")
   const said = await run("facts", "add", "Alice Example said releases go out on Fridays", "--kind", "statement")
   expect(said).toMatchObject({ kind: "statement", text: expect.stringContaining("Fridays"), origin: "owner" })
 
@@ -26,7 +27,7 @@ it("records the owner's facts as accepted and lets the owner accept, supersede a
   const proposed = await store.facts.add({
     type: "decision",
     statement: "Releases go out on Fridays",
-    by: { bot: "memo-mcp" },
+    by: { bot: "wcat-mcp" },
     evidence: [note.ref],
   })
   await store.close()
@@ -50,7 +51,7 @@ it("records the owner's facts as accepted and lets the owner accept, supersede a
 })
 
 it("filters facts by a query in the store, and refuses the old flags and a question it cannot ask", async () => {
-  const env = { ...process.env, MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "memo-facts-")), "store.db") }
+  const env = { ...process.env, MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "wcat-facts-")), "store.db") }
   const run = async (...args: string[]) => {
     const streams = captureStreams()
     await createProgram({ streams, env })
@@ -79,7 +80,7 @@ it("filters facts by a query in the store, and refuses the old flags and a quest
 })
 
 it("lets the owner correct a fact of any kind, and an agent only one the owner has not accepted", async () => {
-  const env = { ...process.env, MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "memo-facts-")), "store.db") }
+  const env = { ...process.env, MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "wcat-facts-")), "store.db") }
   const run = async (as: NodeJS.ProcessEnv, ...args: string[]) => {
     const streams = captureStreams()
     await createProgram({ streams, env: { ...env, ...as } })
@@ -89,7 +90,7 @@ it("lets the owner correct a fact of any kind, and an agent only one the owner h
   }
   const owner = { AI_AGENT: "", CLAUDECODE: "" }
   const agent = { AI_AGENT: "hermes" }
-  const note = await run(owner, "notes", "add", "Alice Example: the review moved")
+  const note = await addNote(env, "Alice Example: the review moved")
   const proposed = await run(
     agent,
     "facts",
@@ -121,7 +122,7 @@ it("lets the owner correct a fact of any kind, and an agent only one the owner h
 })
 
 it("lets only the owner revoke an agent's accepted fact, which waits as proposed again", async () => {
-  const env = { ...process.env, MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "memo-facts-")), "store.db") }
+  const env = { ...process.env, MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "wcat-facts-")), "store.db") }
   const run = async (as: NodeJS.ProcessEnv, ...args: string[]) => {
     const streams = captureStreams()
     await createProgram({ streams, env: { ...env, ...as } })
@@ -131,7 +132,7 @@ it("lets only the owner revoke an agent's accepted fact, which waits as proposed
   }
   const owner = { AI_AGENT: "", CLAUDECODE: "" }
   const agent = { AI_AGENT: "hermes" }
-  const note = await run(owner, "notes", "add", "Alice Example: the draft comes on Monday")
+  const note = await addNote(env, "Alice Example: the draft comes on Monday")
   const promised = await run(
     agent,
     "facts",
@@ -161,7 +162,7 @@ it("lets only the owner revoke an agent's accepted fact, which waits as proposed
 })
 
 it("logs who removed a fact, when and why, never its text, and keeps the reason of a reversal", async () => {
-  const env = { ...process.env, MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "memo-facts-")), "store.db") }
+  const env = { ...process.env, MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "wcat-facts-")), "store.db") }
   const run = async (...args: string[]) => {
     const streams = captureStreams()
     await createProgram({ streams, env }).exitOverride().parseAsync(args, { from: "user" })

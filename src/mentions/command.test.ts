@@ -10,8 +10,8 @@ import { createProgram } from "../program.js"
 
 const ME = "owner@example.test"
 const OTHER = "other@example.test"
-const root = mkdtempSync(join(tmpdir(), "memo-mentions-"))
-const env = { ...process.env, MESSAGING_STORE: join(root, "m.db"), MEMO_CONFIG_DIR: join(root, "config") }
+const root = mkdtempSync(join(tmpdir(), "wcat-mentions-"))
+const env = { ...process.env, MESSAGING_STORE: join(root, "m.db"), WCAT_CONFIG_DIR: join(root, "config") }
 
 const run = async (...args: string[]) => {
   const streams = captureStreams()

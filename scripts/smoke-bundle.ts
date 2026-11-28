@@ -10,8 +10,8 @@ import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 
-const COMMAND = "memo"
-const PREFIX = "MEMO"
+const COMMAND = "wcat"
+const PREFIX = "WCAT"
 
 const runtime = typeof (globalThis as { Bun?: unknown }).Bun === "undefined" ? "node" : "bun"
 const failures: string[] = []

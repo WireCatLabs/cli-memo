@@ -22,12 +22,12 @@ it("lists shared text models without an account and refuses offline downloads", 
   ).rejects.toThrow("--offline")
 })
 
-describe("the shared model settings memo mounts", () => {
+describe("the shared model settings wcat mounts", () => {
   const keyring = memoryKeyring()
   const env: NodeJS.ProcessEnv = {
     ...process.env,
-    MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "memo-models-")), "s.db"),
-    MEMO_CONFIG_DIR: mkdtempSync(join(tmpdir(), "memo-models-config-")),
+    MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "wcat-models-")), "s.db"),
+    WCAT_CONFIG_DIR: mkdtempSync(join(tmpdir(), "wcat-models-config-")),
   }
   // A key in the environment of whoever runs the suite would count as stored.
   delete env.OPENAI_API_KEY

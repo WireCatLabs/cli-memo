@@ -7,7 +7,6 @@ import type { AccountKey, MessageStore } from "@wirecat/cli-core/store"
 import type { StoredTag } from "@wirecat/cli-core/store/areas"
 import type { Command } from "commander"
 import { answers, itemAnswer, listAnswer, withStore } from "../answer.js"
-import { folderIds } from "../notes/bound.js"
 import { positive } from "../options.js"
 import { scopedAccounts } from "../store/group.js"
 import { heldMessage } from "../store/held.js"
@@ -46,7 +45,7 @@ interface ListOptions {
   json?: boolean
 }
 
-/** memo's rows carry labels on notes, people and folders too, beyond cli-core's `tagging` entity. */
+/** wcat's rows carry labels on notes, people and folders too, beyond cli-core's `tagging` entity. */
 const TAG_QUERY = {
   entity: "source_tag",
   backend: "native",
@@ -141,10 +140,11 @@ export const tagsCommand = (program: Command, streams: Streams, env: NodeJS.Proc
       await withStore(env, async (store) => {
         if (target.type === "project") target.id = (await canonicalProject(store, target.id)).slice("project:".length)
         if (target.type === "folder") {
-          const [id, ...more] = await folderIds(store, env, [target.id])
-          if (id === undefined || more.length > 0)
-            throw new CliError("not_found", `no folder of notes ${target.id}`, { reason: "folder.not-found" })
-          target.id = id
+          // A folder's place on disk is the files CLI's, so a folder is named here by the id the store holds.
+          if (!(await store.notes.folders()).some(({ id }) => id === target.id))
+            throw new CliError("not_found", `no folder of notes ${target.id}; files folders list names their ids`, {
+              reason: "folder.not-found",
+            })
         }
         const changed = await (operation === "add" ? store.knowledge.addTags : store.knowledge.removeTags)(
           null,

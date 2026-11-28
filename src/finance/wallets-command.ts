@@ -58,7 +58,7 @@ const sourceSays = async (store: MessageStore, wallet: Wallet) => {
   return null
 }
 
-/** `memo wallets`: where the owner's money is, with a balance computed from its confirmed, booked transactions. */
+/** `wcat wallets`: where the owner's money is, with a balance computed from its confirmed, booked transactions. */
 export const walletCommands = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
   const { run } = answers(program, streams, env)
   const wallets = program

@@ -23,7 +23,7 @@
       "required": ["command"],
       "type": "object"
     },
-    "name": "memo_read"
+    "name": "wcat_read"
   },
   {
     "annotations": {
@@ -42,7 +42,7 @@
       "required": [],
       "type": "object"
     },
-    "name": "memo_tools_search"
+    "name": "wcat_tools_search"
   },
   {
     "annotations": {
@@ -69,6 +69,6 @@
       "required": ["command"],
       "type": "object"
     },
-    "name": "memo_write"
+    "name": "wcat_write"
   }
 ]

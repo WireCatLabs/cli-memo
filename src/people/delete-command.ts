@@ -34,9 +34,9 @@ export const deleteCommand = (people: Command, program: Command, streams: Stream
     annotate(people.command("delete"), {
       effects: LOCAL_WRITE,
       output: { entity: "person_erasure" },
-      examples: ["memo people delete person:17", "memo people delete person:17 --yes"],
+      examples: ["wcat people delete person:17", "wcat people delete person:17 --yes"],
     })
-      .summary("delete a person and what memo knows of them alone; only you")
+      .summary("delete a person and what wcat knows of them alone; only you")
       .description(
         "delete a person, the people merged into them earlier, their identities, your notes about them, and the " +
           "tags, links, aliases and mentions that name them. A fact, task or imported entry that names them stays " +

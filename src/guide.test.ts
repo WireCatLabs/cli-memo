@@ -5,12 +5,13 @@ import { expect, it } from "vitest"
 import { createProgram } from "./program.js"
 
 const packageRoot = fileURLToPath(new URL("..", import.meta.url))
-const otherTools = WIRECAT_TOOLS.map(({ command }) => command).filter((command) => command !== "memo")
+// cli-core's tool list names files once the split lands there; its steps are checked like any other tool's.
+const otherTools = [...WIRECAT_TOOLS.map(({ command }) => command), "files"].filter((command) => command !== "wcat")
 
-it("checks every memo step of every scenario, and ships the folder", async () => {
+it("checks every wcat step of every scenario, and ships the folder", async () => {
   const problems = await checkGuide(() => createProgram({ streams: captureStreams(), env: {} }), { packageRoot })
-  // checkGuide knows only memo's commands; a step of another tool is checked against its npm release by hand.
-  const foreign = new RegExp(`\\): starts with "(${otherTools.join("|")})", not memo$`)
+  // checkGuide knows only wcat's commands; a step of another tool is checked against its npm release by hand.
+  const foreign = new RegExp(`\\): starts with "(${otherTools.join("|")})", not wcat$`)
   expect(problems.filter((problem) => !foreign.test(problem))).toEqual([])
 })
 

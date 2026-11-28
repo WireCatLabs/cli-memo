@@ -67,13 +67,13 @@ describe("source-grounded answer proposals", () => {
     ).rejects.toMatchObject({ code: "invalid_response" })
   })
 
-  it("uses MEMO_MODELS_ANALYSIS_* when set, else the AI model chosen for every tool", () => {
-    const root = mkdtempSync(join(tmpdir(), "memo-answers-"))
+  it("uses WCAT_MODELS_ANALYSIS_* when set, else the AI model chosen for every tool", () => {
+    const root = mkdtempSync(join(tmpdir(), "wcat-answers-"))
     const env: NodeJS.ProcessEnv = {
       MESSAGING_STORE: join(root, "store.db"),
       WIRECAT_CONFIG_DIR: join(root, "wirecat"),
     }
-    expect(() => answerModel(env)).toThrow("memo models ai set")
+    expect(() => answerModel(env)).toThrow("wcat models ai set")
     const path = aiSettingPath(env)
     mkdirSync(dirname(path), { recursive: true })
     writeFileSync(path, JSON.stringify({ ai: { provider: "ollama", model: "synthetic" } }))
@@ -82,22 +82,22 @@ describe("source-grounded answer proposals", () => {
       model: "synthetic",
       baseUrl: "http://127.0.0.1:11434/v1",
     })
-    const given = { ...env, MEMO_MODELS_ANALYSIS_PROVIDER: "anthropic", MEMO_MODELS_ANALYSIS_MODEL: "own" }
+    const given = { ...env, WCAT_MODELS_ANALYSIS_PROVIDER: "anthropic", WCAT_MODELS_ANALYSIS_MODEL: "own" }
     expect(answerModel(given).target).toEqual({ provider: "anthropic", model: "own" })
   })
 })
 
-describe("answers create through memo", () => {
+describe("answers create through wcat", () => {
   it("keeps --limit evidence items, and sends them to a remote model only with --analyze --allow-remote", async () => {
-    const root = mkdtempSync(join(tmpdir(), "memo-answers-"))
+    const root = mkdtempSync(join(tmpdir(), "wcat-answers-"))
     const env: NodeJS.ProcessEnv = {
       ...process.env,
       MESSAGING_STORE: join(root, "s.db"),
-      MEMO_CONFIG_DIR: join(root, "config"),
-      MEMO_MODELS_ANALYSIS_PROVIDER: "openai",
-      MEMO_MODELS_ANALYSIS_MODEL: "gpt-synthetic",
-      MEMO_MODELS_ANALYSIS_BASE_URL: "https://models.example/v1",
-      MEMO_MODEL_API_KEY: "sk-synthetic-answers-0000",
+      WCAT_CONFIG_DIR: join(root, "config"),
+      WCAT_MODELS_ANALYSIS_PROVIDER: "openai",
+      WCAT_MODELS_ANALYSIS_MODEL: "gpt-synthetic",
+      WCAT_MODELS_ANALYSIS_BASE_URL: "https://models.example/v1",
+      WCAT_MODEL_API_KEY: "sk-synthetic-answers-0000",
     }
     const store = await openStore({ env })
     await store.notes.addNote({ text: "Synthetic budget for the boat" })

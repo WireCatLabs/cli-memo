@@ -1,11 +1,13 @@
-import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs"
+import { mkdtempSync, writeFileSync } from "node:fs"
 import { createServer, type Server } from "node:http"
 import type { AddressInfo } from "node:net"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { Readable } from "node:stream"
 import { captureStreams, memoryKeyring } from "@wirecat/cli-base"
+import { openStore } from "@wirecat/cli-core/store"
 import { afterEach, beforeEach, describe, expect, it } from "vitest"
+import { storeMail } from "../../test/mail-store.js"
 import { createProgram } from "../program.js"
 
 let env: NodeJS.ProcessEnv
@@ -53,16 +55,12 @@ beforeEach(() => {
   requests = 0
   keyring = memoryKeyring()
   dir = mkdtempSync(join(tmpdir(), "enrichment-sync-"))
-  const vault = join(dir, "vault")
-  mkdirSync(vault)
-  writeFileSync(join(vault, "a.md"), "the hosting agreement renews in March")
-  writeFileSync(join(vault, "b.md"), "the press kit is ready")
   env = {
     ...process.env,
     XDG_CONFIG_HOME: join(dir, "xdg"),
-    MEMO_CONFIG_DIR: join(dir, "config"),
-    MEMO_STATE_DIR: join(dir, "state"),
-    MEMO_CACHE_DIR: join(dir, "cache"),
+    WCAT_CONFIG_DIR: join(dir, "config"),
+    WCAT_STATE_DIR: join(dir, "state"),
+    WCAT_CACHE_DIR: join(dir, "cache"),
     WIRECAT_STATE_DIR: join(dir, "wirecat"),
     MESSAGING_STORE: join(dir, "messages.db"),
     AI_AGENT: "",
@@ -72,8 +70,44 @@ beforeEach(() => {
 
 afterEach(() => new Promise<void>((done) => (server ? server.close(() => done()) : done())))
 
+/** Two emails the mail CLI stored, which wcat sync embeds and so enriches. */
+const storeTwoEmails = async () => {
+  const store = await openStore({ env })
+  try {
+    await storeMail(
+      store,
+      "owner@example.test",
+      [
+        {
+          uid: "1",
+          messageId: "a",
+          threadId: "1",
+          receivedAt: "2026-11-01T08:00:00Z",
+          subject: "Hosting",
+          from: ["Rin Example", "rin@example.test"],
+          to: [[null, "owner@example.test"]],
+          text: "the hosting agreement renews in March",
+        },
+        {
+          uid: "2",
+          messageId: "b",
+          threadId: "2",
+          receivedAt: "2026-11-02T08:00:00Z",
+          subject: "Press",
+          from: ["Rin Example", "rin@example.test"],
+          to: [[null, "owner@example.test"]],
+          text: "the press kit is ready",
+        },
+      ],
+      { since: new Date("2026-10-01") },
+    )
+  } finally {
+    await store.close()
+  }
+}
+
 const turnOn = async (baseUrl: string) => {
-  await run("folders", "add", join(dir, "vault"), "--format", "markdown")
+  await storeTwoEmails()
   writeFileSync(
     join(dir, "config.json"),
     JSON.stringify({
@@ -82,7 +116,7 @@ const turnOn = async (baseUrl: string) => {
   )
 }
 
-describe("memo sync with enrichment on", () => {
+describe("wcat sync with enrichment on", () => {
   it("reports what it sent, even when the embedding model is not downloaded", async () => {
     await turnOn(
       await fakeProvider((count) => ({
@@ -105,7 +139,7 @@ describe("memo sync with enrichment on", () => {
       output_tokens: 10,
       cost_usd: null,
     })
-    expect(reply.item.notes_embedded).not.toHaveProperty("enrichment")
+    expect(reply.item.mail_embedded).not.toHaveProperty("enrichment")
   })
 
   it("says why nothing came back, so a failure is not silent", async () => {
@@ -133,15 +167,15 @@ describe("memo sync with enrichment on", () => {
   })
 
   it("is absent while enrichment is off", async () => {
-    await run("folders", "add", join(dir, "vault"), "--format", "markdown")
+    await storeTwoEmails()
     const reply = JSON.parse(await run("sync", "--json"))
 
     expect(reply.item.enrichment).toBeUndefined()
   })
 })
 
-describe("memo models keys", () => {
-  it("stores the key from stdin in memo's keyring entry, prints only where, and forgets it", async () => {
+describe("wcat models keys", () => {
+  it("stores the key from stdin in wcat's keyring entry, prints only where, and forgets it", async () => {
     const secret = "synthetic provider key"
 
     const stored = await piped(`${secret}\n`, "models", "keys", "set", "openai", "--json")
