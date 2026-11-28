@@ -4,6 +4,31 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## 0.157.0 — 28.11.2026
+
+### Added
+
+- **`memo mail subscriptions list`.** The newsletters and lists you get: mail sent to many readers, one row per list
+  (`List-Id`), or per sender when there is none, newest first, with its mail count, its newest mail and where to
+  unsubscribe (an https or mailto address its sender's domain signed, and whether one click does it). `type:` keeps
+  one mail type, `--source` some mailboxes, `--limit` and `--page` page it. Memo never unsubscribes. See
+  [Newsletters and lists](docs/mail.md#newsletters-and-lists-you-are-subscribed-to).
+- **`memo bots list type:`** filters bots by what they send: `alerts`, `receipts`, `newsletters`, `marketing` or
+  `messenger`. See [Bots](docs/people.md#bots).
+- **WireCat Desktop reads the MCP port from memo itself.** The manifest (`memo --wcat-describe`) now names the fixed
+  MCP port 8767. Desktop reads it from the tool and keeps its own list only as a fallback. Built on cli-base 1.2.0.
+
+### Changed — may break callers
+
+- **`memo upgrade` moves you from memo to wcat.** memo is now `wcat`, package `@wirecat/wirecat`. This is the last
+  `@wirecat/cli-memo`. `memo upgrade` installs `@wirecat/wirecat` (and `@wirecat/files-cli` when notes folders are
+  set) with the package manager that installed memo, starts it once so it moves memo's folders, keys and timers, then
+  removes `@wirecat/cli-memo`. While `@wirecat/wirecat` is not on npm it says so and changes nothing. `--check` shows
+  the commands. Its JSON is new: `current`, `installer`, `memo_latest`, `wirecat`, `packages`, `commands`,
+  `switched`, `removed`.
+- **A daily line says to run `memo upgrade`.** On a terminal only, never in JSON, MCP or a timer run. It asks npm
+  nothing.
+
 ## 0.156.0 — 27.11.2026
 
 ### Added
