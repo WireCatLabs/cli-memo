@@ -63,6 +63,14 @@ it("lists broadcast mail by list, newest first, with where to unsubscribe", asyn
   expect(await f.items(OWNER, "mail", "subscriptions", "list", "type:promotion")).toEqual([])
 })
 
+it("reads only the mailboxes --source names", async () => {
+  const mine = await f.items(OWNER, "mail", "subscriptions", "list", "--source", `email:${ME}`)
+  expect(mine).toHaveLength(2)
+  await expect(
+    f.items(OWNER, "mail", "subscriptions", "list", "--source", "email:other@home.example.com"),
+  ).rejects.toMatchObject({ code: "not_found" })
+})
+
 it("filters bots by what they send", async () => {
   await f.items(OWNER, "people", "list")
   expect((await f.items(OWNER, "bots", "list", "type:messenger")).map(({ name }) => name ?? null)).toHaveLength(1)
