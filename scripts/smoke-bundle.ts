@@ -26,6 +26,12 @@ const run = (args: string[], env: Record<string, string> = {}) =>
     encoding: "utf8",
     env: {
       ...process.env,
+      HOME: isolated,
+      XDG_CONFIG_HOME: join(isolated, "xdg-config"),
+      XDG_DATA_HOME: join(isolated, "xdg-data"),
+      XDG_STATE_HOME: join(isolated, "xdg-state"),
+      XDG_CACHE_HOME: join(isolated, "xdg-cache"),
+      DBUS_SESSION_BUS_ADDRESS: "disabled:",
       [`${PREFIX}_CONFIG_DIR`]: join(isolated, "config"),
       [`${PREFIX}_STATE_DIR`]: join(isolated, "state"),
       [`${PREFIX}_CACHE_DIR`]: join(isolated, "cache"),
