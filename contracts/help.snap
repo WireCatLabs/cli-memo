@@ -1,7 +1,7 @@
-memo — your notes, mail and messages in one local store, linked to people; every answer cites its
+wcat — your notes, mail and messages in one local store, linked to people; every answer cites its
 source.
 
-Usage: memo <command> [options]
+Usage: wcat <command> [options]
 
 What you can do:
   context <person>              one person's messages, mail, notes and tasks
@@ -20,6 +20,7 @@ Works with:
   zm                            Zoom meetings: transcripts and summaries, searchable with your other WireCat data
   drive                         Google Drive and Docs as local text, searchable with your other WireCat data
   gcal                          Google Calendar events, searchable with your other WireCat data
+  memo context <person>         one person across messengers, mail, notes and meetings
   mail                          IMAP mail in the same local store: search your mailbox offline, next to your other WireCat data
   b24                           Bitrix24 CRM: deals, leads and pipelines, searchable with your other WireCat data
   amo                           amoCRM and Kommo: deals, contacts and companies, searchable with your other WireCat data
@@ -30,8 +31,8 @@ Works with:
   wordpress                     WordPress posts and pages, searchable with your other WireCat data
   linear                        Linear issues and projects, searchable with your other WireCat data
 
-Start here:   memo folders add <path>
-Next:         memo commands            every command, by section
-              memo guide               scenarios: command sequences for common tasks
-              memo help options        the options every command takes
-For agents:   memo skill show          rules and the discovery loop
+Start here:   wcat sync
+Next:         wcat commands      every command, by section
+              wcat guide         scenarios: command sequences for common tasks
+              wcat help options  the options every command takes
+For agents:   wcat skill show    rules and the discovery loop

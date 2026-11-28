@@ -2,11 +2,11 @@
   "command": "node",
   "args": ["../dist/bin/wcat-wirecat.js"],
   "previous": {},
-  "canaries": ["wirecat-synthetic-note-canary"],
+  "canaries": ["wirecat-synthetic-person-canary"],
   "cases": [
     {
-      "id": "previous-writes-a-note",
-      "args": ["notes", "add", "wirecat-synthetic-note-canary", "--json"],
+      "id": "previous-writes-a-person",
+      "args": ["people", "add", "wirecat-synthetic-person-canary", "--json"],
       "exit": 0,
       "stream": "stdout",
       "kind": "json",
@@ -14,13 +14,13 @@
       "allowSensitiveOutput": true,
       "json": {
         "item": {
-          "ref": "note:1"
+          "name": "wirecat-synthetic-person-canary"
         }
       }
     },
     {
-      "id": "candidate-reads-the-note",
-      "args": ["notes", "list", "--json"],
+      "id": "candidate-reads-the-person",
+      "args": ["people", "list", "--json"],
       "exit": 0,
       "stream": "stdout",
       "diagnosticPattern": "(?:the store moved to schema \\d+; every other WireCat CLI that uses it needs a version that speaks it — run `<cli> upgrade` for each\n)?",
@@ -29,21 +29,20 @@
       "json": {
         "items": [
           {
-            "ref": "note:1",
-            "text": "wirecat-synthetic-note-canary"
+            "name": "wirecat-synthetic-person-canary"
           }
         ]
       }
     },
     {
       "id": "candidate-writes-after-upgrade",
-      "args": ["notes", "add", "second synthetic note", "--json"],
+      "args": ["people", "add", "second synthetic person", "--json"],
       "exit": 0,
       "stream": "stdout",
       "kind": "json",
       "json": {
         "item": {
-          "text": "second synthetic note"
+          "name": "second synthetic person"
         }
       }
     }

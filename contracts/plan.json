@@ -16,7 +16,7 @@
       "exit": 0,
       "stream": "stdout",
       "kind": "json",
-      "contains": "\"cli\":\"memo\""
+      "contains": "\"cli\":\"wcat\""
     },
     {
       "id": "invalid-option",
@@ -28,7 +28,7 @@
     },
     {
       "id": "invalid-command",
-      "args": ["notes", "unknown-subcommand"],
+      "args": ["tags", "unknown-subcommand"],
       "exit": 2,
       "stream": "stderr",
       "kind": "json",
@@ -36,7 +36,7 @@
     },
     {
       "id": "empty-store-lists-nothing",
-      "args": ["notes", "list", "--json"],
+      "args": ["facts", "list", "--json"],
       "exit": 0,
       "stream": "stdout",
       "kind": "json",
@@ -69,13 +69,13 @@
       "errorCode": "not_found"
     },
     {
-      "id": "moved-to-mail-cli",
+      "id": "mail-belongs-to-the-mail-cli",
       "args": ["mail", "rules", "add", "personal", "--domain", "news.example", "--do", "envelope", "--json"],
       "exit": 2,
       "stream": "stderr",
       "kind": "json",
       "errorCode": "validation_error",
-      "contains": "mail <profile> rules add"
+      "contains": "unknown command or group"
     }
   ],
   "mcp": {
