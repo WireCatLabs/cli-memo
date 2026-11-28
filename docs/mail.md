@@ -58,7 +58,7 @@ memo mail subscriptions list type:promotion        # only lists whose mail is ma
 memo mail subscriptions list --source email:work --page 2 --json
 ```
 
-Each row has `key`, `list_id`, `name`, `sender` (the `sender-bot:` or `person:` that sent its newest mail), `emails`,
+Each row has `key`, `list_id`, `name`, `sender` (the `bot:` or `person:` that sent its newest mail), `emails`,
 `newest` and `unsubscribe`: the `https` and `mailto` addresses the list gives for leaving it, and `one_click` when one
 request does it. An address is shown only when the sender's own domain signed it (DKIM), so a forged link is never
 offered. Memo never unsubscribes for you. Mail stored before memo kept these addresses shows `can_unsubscribe: false`

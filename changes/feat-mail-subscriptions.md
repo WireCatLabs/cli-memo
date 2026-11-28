@@ -7,9 +7,3 @@
   [Newsletters and lists](../docs/mail.md#newsletters-and-lists-you-are-subscribed-to).
 - **`memo bots list type:`** filters bots by what they send: `alerts`, `receipts`, `newsletters`, `marketing` or
   `messenger`. See [Bots](../docs/people.md#bots).
-
-### Changed — may break callers
-
-- **memo runs on the cli-core release that carries cli-core#3379** (was 1.1.0; the version is set when it is out).
-  It brings the subscriptions read, the kept List-Unsubscribe addresses and the bots filter. See
-  [cli-core's changelog](https://github.com/WireCatLabs/cli-core/blob/main/CHANGELOG.md).

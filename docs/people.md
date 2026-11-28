@@ -68,7 +68,7 @@ memo bots list                            # every bot, by name
 memo bots list name:shop                  # a part of a name, address or username, 3 characters or more
 memo bots list 'organization:"organization:3"' --page 2
 memo bots list type:receipts              # bots that send orders, bills or shipping notices
-memo bots show bot:3               # its identities and every move to or from it
+memo bots show bot:3                      # its identities and every move to or from it
 ```
 
 `type:` is what a bot sends, one at a time: `alerts` (security codes, sign-in and system alerts, account notices),
