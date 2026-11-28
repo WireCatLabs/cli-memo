@@ -4,8 +4,6 @@ Notable changes to `@wirecat/wirecat` (`wcat`), one section per version, newest 
 `@wirecat/cli-memo` (`memo`). Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor
 release may change the API.
 
-## 1.0.0 — 28.11.2026
-
 ## 0.156.0 — 27.11.2026
 
 ### Added
@@ -27,7 +25,7 @@ release may change the API.
 ### Fixed
 
 - **`memo import`, notes folders and `sources add` read a file up to 10 GB, not 50 MiB.** The limit is cli-core's
-  shared file budget: `MESSAGING_ATTACHMENT_MAX_MIB` sets another one, in MiB ([import](https://github.com/WireCatLabs/files-cli#readme)).
+  shared file budget: `MESSAGING_ATTACHMENT_MAX_MIB` sets another one, in MiB ([import](docs/import.md#limits)).
   A notes file skipped for its size is read on the next import. A file is read whole into memory, so a large one
   needs that much free memory. A recording is heard up to 2 GiB, not 256 MiB, and still up to an hour.
 
@@ -382,10 +380,10 @@ release may change the API.
   `obsidian`, so a `#word` in plain Markdown became a tag. The `--json` answer names where the format came from
   (`format_from`: `detected`, `option` or `saved`). `--format` still wins, and a folder memo already knows keeps
   its format. A bare path written before folder ids counts as never chosen, so it is detected too.
-  See [Add a folder](https://github.com/WireCatLabs/files-cli#readme).
+  See [Add a folder](docs/notes.md#add-a-folder).
 - **`memo folders add` refuses a folder inside or around one memo already reads.** Each file under both would be
   two notes. The `validation_error` names both folders, with reason `folder.overlap`; `memo doctor` reports such a
-  pair in an existing config. See [Add a folder](https://github.com/WireCatLabs/files-cli#readme).
+  pair in an existing config. See [Add a folder](docs/notes.md#add-a-folder).
 - **A `readonly` level no longer stops a sync** (cli-core 0.662.0, was 0.661.0). A command that only fetches from a
   service into the local store runs at `readonly`; `deny` still refuses it. Commands that write the owner's files or
   call another service stay blocked by `readonly`.
@@ -401,7 +399,7 @@ release may change the API.
 - **Changing a folder's format reads its notes again.** After `memo folders add --format` or `memo folders update
   --format` with another format, the next `memo sync --only notes` parses every note of that folder again, even
   unchanged ones, so tags and links read in the old format are replaced. See
-  [Markdown or Obsidian](https://github.com/WireCatLabs/files-cli#readme).
+  [Markdown or Obsidian](docs/notes.md#markdown-or-obsidian).
 
 ## 0.133.0 — 14.11.2026
 
@@ -428,11 +426,11 @@ release may change the API.
   `phone:<exchange>`, keyed by its path in the folder: the same folder twice changes nothing, an edited file updates
   its own document, a recording is heard once, and a file gone from the folder is kept. A `.json` or `.jsonl` file
   goes to the records import. Links are not followed, nothing leaves the computer, and `--dry-run` writes nothing
-  ([Import files and records](https://github.com/WireCatLabs/files-cli#readme)).
+  ([Import files and records](docs/import.md)).
 - **`memo sources add` keeps meeting transcripts.** A `.vtt` (WebVTT) or `.srt` (SubRip) file exported from a video
   call is kept as searchable text, one `Name: text` line per turn without the timings; before, it was refused as
   `source.unsupported`. WireCat Desktop's "Add to memory" takes them too
-  ([Sources you add by hand](https://github.com/WireCatLabs/files-cli#readme)).
+  ([Sources you add by hand](docs/sources.md#add-a-source)).
 - **An agent over MCP may run a schedule you made.** `schedule list`, `agents list`, `run` and `exec` are offered, as
   in every WireCat CLI. Making, removing, pausing or resuming a schedule needs `mcp.authority`, which defaults to
   `deny`. See [MCP](docs/mcp.md).
@@ -750,7 +748,7 @@ release may change the API.
   or an example envelope (`--format json`); **`records templates list`** lists the types and their columns. WireCat Desktop's Storage import uses both.
 - **`memo sources preview <url>`: a web page as `sources add` would read it, with nothing kept.** It answers the
   title, site, description, the first lines of the text and its size, and refuses what `sources add` refuses. WireCat
-  Desktop shows it in "Add to memory" before you save ([Sources you add by hand](https://github.com/WireCatLabs/files-cli#readme)).
+  Desktop shows it in "Add to memory" before you save ([Sources you add by hand](docs/sources.md#look-at-a-page-before-adding-it)).
 
 ### Changed — may break callers
 

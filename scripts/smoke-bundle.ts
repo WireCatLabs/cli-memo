@@ -11,6 +11,7 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 
 const COMMAND = "wcat"
+const BIN = "wcat-wirecat"
 const PREFIX = "WCAT"
 
 const runtime = typeof (globalThis as { Bun?: unknown }).Bun === "undefined" ? "node" : "bun"
@@ -20,9 +21,9 @@ const check = (what: string, condition: boolean) => {
 }
 
 // Overridden directories also move the keyring entry, so nothing here reads the owner's accounts or store.
-const isolated = mkdtempSync(join(tmpdir(), `${COMMAND}-bundle-smoke-`))
+const isolated = mkdtempSync(join(tmpdir(), `${BIN}-bundle-smoke-`))
 const run = (args: string[], env: Record<string, string> = {}) =>
-  spawnSync(process.execPath, [`dist/bin/${COMMAND}.js`, ...args], {
+  spawnSync(process.execPath, [`dist/bin/${BIN}.js`, ...args], {
     encoding: "utf8",
     env: {
       ...process.env,
@@ -35,8 +36,8 @@ const run = (args: string[], env: Record<string, string> = {}) =>
     },
   })
 
-const loader = readFileSync(`dist/bin/${COMMAND}.js`, "utf8")
-check("the bin starts the bundle", loader.includes(`import("../bundle/${COMMAND}.js")`))
+const loader = readFileSync(`dist/bin/${BIN}.js`, "utf8")
+check("the bin starts the bundle", loader.includes(`import("../bundle/${BIN}.js")`))
 const preloaded = [...loader.matchAll(/"\.\.\/bundle\/([^"]+)"/g)].map(([, chunk]) => chunk ?? "")
 check(
   "a server preloads only chunks the bundle has",

@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs"
+import { readFileSync, realpathSync } from "node:fs"
 import { userInfo } from "node:os"
 import { join } from "node:path"
 
@@ -14,9 +14,17 @@ const INSTALLED = "/node_modules/@wirecat/wirecat/"
 export const mayMigrate = (
   env: NodeJS.ProcessEnv,
   platform: NodeJS.Platform = process.platform,
-  script = "",
+  script: string | undefined = "",
 ): boolean => {
-  if (!script.replaceAll("\\", "/").includes(INSTALLED)) return false
+  if (!script) return false
+  let real: string
+  try {
+    // npm and pnpm start the program through a link in their bin folder.
+    real = realpathSync(script)
+  } catch {
+    real = script
+  }
+  if (!real.replaceAll("\\", "/").includes(INSTALLED)) return false
   const kinds = ["CONFIG", "STATE", "CACHE"]
   if (kinds.some((kind) => env[`WCAT_${kind}_DIR`] || env[`MEMO_${kind}_DIR`])) return false
   let home: string

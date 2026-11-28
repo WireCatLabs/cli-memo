@@ -1,4 +1,4 @@
-// The built command under the running runtime (`bun scripts/smoke.ts`): a fact written and read back from a fresh store.
+// The built command under the running runtime (`bun scripts/smoke.ts`): a person written and read back from a fresh store.
 import { strict as assert } from "node:assert"
 import { execFileSync } from "node:child_process"
 import { mkdtempSync, rmSync } from "node:fs"
@@ -19,8 +19,8 @@ const env = {
 const wcat = (...args: string[]) =>
   JSON.parse(execFileSync(process.execPath, [bin, ...args, "--json"], { env, encoding: "utf8", timeout: 30_000 }))
 try {
-  assert.equal(wcat("facts", "add", "smoke fact", "--kind", "decision").item.ref, "fact:1")
-  assert.equal(wcat("facts", "list").items[0].ref, "fact:1")
+  const added = wcat("people", "add", "Smoke", "Person").item.ref
+  assert.ok(wcat("people", "list").items.some((one: { ref: string }) => one.ref === added))
   console.log("smoke: ok")
 } finally {
   rmSync(home, { recursive: true, force: true })

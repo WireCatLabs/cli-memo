@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 import { enableCompileCache } from "node:module"
-import { fileURLToPath } from "node:url"
 import { wcatStart } from "@wirecat/cli-base/wcat/start"
 import { DESKTOP } from "../identity.js"
 import { mayMigrate } from "../migrate/check.js"
@@ -12,7 +11,7 @@ if (wcat.code !== undefined) {
   process.exitCode = wcat.code
 } else {
   // Before any command, a bare --version too: wcat's last upgrade runs that once to move wcat's files and timers.
-  if (mayMigrate(process.env, process.platform, fileURLToPath(import.meta.url))) {
+  if (mayMigrate(process.env, process.platform, process.argv[1])) {
     try {
       const { migrateFromMemo } = await import("../migrate/from-memo.js")
       await migrateFromMemo({ env: process.env, warn: (line) => process.stderr.write(`${line}\n`) })

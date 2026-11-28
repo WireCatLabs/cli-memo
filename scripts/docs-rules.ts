@@ -24,5 +24,8 @@ export function docsRules(root: string): DocsRules {
       .map((file) => join(root, file)),
     ids: JOURNAL_IDS,
     userPage: (name) => name === "README.md",
+    // Released sections are never edited, and these pages moved to the files CLI with its commands.
+    skipLink: (target, destination) =>
+      [target, destination].some((link) => /(^|\/)docs\/(import|notes|sources)\.md(#|$)/.test(link)),
   }
 }
